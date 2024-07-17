@@ -100,7 +100,8 @@ int main()
         }
 
         for (int i = meteors.size()-1; i>=0; --i) {
-            if (player.checkFuelCollision(meteors[i]) || isBelowBottomBoundary(meteors[i], window)) {
+            player.checkMeteorCollision(meteors[i]);
+            if (isBelowBottomBoundary(meteors[i], window)) {
                 meteorsToRemove.push_back(i);
             }
             meteors[i].move();
