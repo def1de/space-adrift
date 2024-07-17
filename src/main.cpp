@@ -4,6 +4,8 @@
 #include "objects/label.cpp"
 #include "objects/meteor.cpp"
 
+bool isBelowBottomBoundary(const sf::Sprite& object, const sf::RenderWindow& window);
+
 int main()
 {
     auto window = sf::RenderWindow{ sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen};
@@ -35,6 +37,9 @@ int main()
     sf::Texture meteorTexture;
     meteorTexture.loadFromFile(ASSETS_DIR "/meteor.png");
 
+    sf::Texture fuelTexture;
+    fuelTexture.loadFromFile(ASSETS_DIR "/fuel.png");
+
     Player player(window);
 
     Label score(sf::Vector2f(10.f, 10.f), "Score: ", 0);
@@ -57,6 +62,7 @@ int main()
         }
 
         std::vector<int> fuelsToRemove;
+        std::vector<int> meteorsToRemove;
 
         player.updatePlayer();
 
@@ -71,7 +77,7 @@ int main()
             for(int i = 0; i < wave/2; i++) {
                 meteors.emplace_back(meteorTexture);
             }
-            fuels.emplace_back();
+            fuels.emplace_back(fuelTexture);
         }
 
         score.update_value();
@@ -82,7 +88,7 @@ int main()
         uiLayer.clear(sf::Color::Transparent);
 
         for (int i = fuels.size()-1; i>=0; --i) {
-            if (player.checkFuelCollision(fuels[i])) {
+            if (player.checkFuelCollision(fuels[i]) || isBelowBottomBoundary(fuels[i], window)) {
                 fuelsToRemove.push_back(i);
             }
             fuels[i].move();
@@ -93,10 +99,16 @@ int main()
             fuels.erase(fuels.begin() + i);
         }
 
-        for (auto& meteor : meteors) {
-            player.checkMeteorCollision(meteor);
-            meteor.move();
-            window.draw(meteor);
+        for (int i = meteors.size()-1; i>=0; --i) {
+            if (player.checkFuelCollision(meteors[i]) || isBelowBottomBoundary(meteors[i], window)) {
+                meteorsToRemove.push_back(i);
+            }
+            meteors[i].move();
+            window.draw(meteors[i]);
+        }
+
+        for(int i : meteorsToRemove) {
+            meteors.erase(meteors.begin() + i);
         }
 
         window.draw(player);
@@ -110,4 +122,11 @@ int main()
         window.display();
     }
     return 1;
+}
+
+bool isBelowBottomBoundary(const sf::Sprite& object, const sf::RenderWindow& window) {
+    float objectBottomEdge = object.getPosition().y + object.getGlobalBounds().height;
+    float viewportHeight = window.getSize().y;
+
+    return objectBottomEdge > viewportHeight;
 }

@@ -117,7 +117,7 @@ public:
         return getGlobalBounds().intersects(object.getGlobalBounds());
     }
 
-    bool checkFuelCollision(const sf::CircleShape& fuel) {
+    bool checkFuelCollision(const sf::Sprite& fuel) {
         if(checkCollision(fuel) && this->fuel<MAX_FUEL){
             this->fuel += 5;
             if (this->fuel > MAX_FUEL) this->fuel = MAX_FUEL;
