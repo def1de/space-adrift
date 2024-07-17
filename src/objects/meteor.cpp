@@ -1,18 +1,18 @@
 #include <SFML/Graphics.hpp>
 
-class Meteor : public sf::CircleShape {
+class Meteor : public sf::Sprite {
 private:
     float size = 50.f;
     float speed;
 public:
-    Meteor() {
+    Meteor(sf::Texture& texture) {
+        setTexture(texture);
+        setScale(5.f, 5.f);
         speed = rand()%3 + 1;
-        setRadius(size);
         setPosition(rand()%1920, rand()%150*-1);
-        setFillColor(sf::Color::Black);
     }
 
     void move() {
-        CircleShape::move(0.f, speed);
+        Sprite::move(0.f, speed);
     }
 };

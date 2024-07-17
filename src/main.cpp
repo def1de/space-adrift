@@ -32,13 +32,10 @@ int main()
         return -1;
     };
 
-    sf::Texture playerTexture;
-    if(!playerTexture.loadFromFile(ASSETS_DIR "/ship.png")) {
-        return -1;
-    }
-    Player player(window, playerTexture);
-    Fuel fuel;
-    Meteor meteor;
+    sf::Texture meteorTexture;
+    meteorTexture.loadFromFile(ASSETS_DIR "/meteor.png");
+
+    Player player(window);
 
     Label score(sf::Vector2f(10.f, 10.f), "Score: ", 0);
     Label stamina(sf::Vector2f(10.f, 34.f), "Fuel: ", 0);
@@ -72,7 +69,7 @@ int main()
             waveClock.restart();
             wave++;
             for(int i = 0; i < wave/2; i++) {
-                meteors.emplace_back();
+                meteors.emplace_back(meteorTexture);
             }
             fuels.emplace_back();
         }

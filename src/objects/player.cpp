@@ -14,13 +14,15 @@ private:
     sf::RenderWindow& window;
     sf::Clock clock;
     sf::Clock dashClock;
+    sf::Texture texture;
 
 public:
-    explicit Player(sf::RenderWindow& pwindow, const sf::Texture& ptexture) : window(pwindow) {
-        setTexture(ptexture);
+    explicit Player(sf::RenderWindow& pwindow) : window(pwindow) {
+        texture.loadFromFile(ASSETS_DIR "/ship.png");
+        setTexture(texture);
         setScale(5.f, 5.f);
 
-        auto textureSize = ptexture.getSize();
+        auto textureSize = texture.getSize();
         auto windowSize = window.getSize();
         float centerX = (windowSize.x / 2.0f) - (textureSize.x * getScale().x / 2.0f);
         float centerY = (windowSize.y / 2.0f) - (textureSize.y * getScale().y / 2.0f);
@@ -124,7 +126,7 @@ public:
         return false;
     }
 
-    void checkMeteorCollision(const sf::CircleShape& meteor) const {
+    void checkMeteorCollision(const sf::Sprite& meteor) const {
         if(checkCollision(meteor)) {
             window.close();
         }
