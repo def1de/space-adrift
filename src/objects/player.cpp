@@ -1,13 +1,14 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
+#define MAX_FUEL 10
+#define DASH_COST 5
+
 class Player : public sf::Sprite {
 private:
-    std::string tag = "player";
-
     int speedX = 5;
     int speedY = 3;
-    int fuel = 100;
+    int fuel = MAX_FUEL;
     bool isDash = false;
 
     sf::RenderWindow& window;
@@ -31,8 +32,10 @@ public:
         move();
 
         if(clock.getElapsedTime().asSeconds() >= 1.0) {
-            if(fuel < 100) {
-                fuel++;
+            if(fuel > 0) {
+                fuel--;
+            } else {
+                window.close();
             }
             clock.restart();
         }
@@ -54,7 +57,7 @@ public:
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
             movement.x += speedX;
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && fuel >= 20) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && fuel >= DASH_COST) {
             dash();
         }
 
@@ -89,7 +92,7 @@ public:
         if(isDash) return;
         dashClock.restart();
         speedY *= 2;
-        fuel -= 20;
+        fuel -= DASH_COST;
         isDash = true;
     }
 
@@ -100,12 +103,8 @@ public:
         }
     }
 
-    int getStamina() const {
+    int getFuel() const {
         return fuel;
-    }
-
-    std::string getTag() const {
-        return tag;
     }
 
     bool checkCollision(const sf::CircleShape& object) const {
@@ -114,5 +113,20 @@ public:
 
     bool checkCollision(const sf::Sprite& object) const {
         return getGlobalBounds().intersects(object.getGlobalBounds());
+    }
+
+    bool checkFuelCollision(const sf::CircleShape& fuel) {
+        if(checkCollision(fuel) && this->fuel<MAX_FUEL){
+            this->fuel += 5;
+            if (this->fuel > MAX_FUEL) this->fuel = MAX_FUEL;
+            return true;
+        }
+        return false;
+    }
+
+    void checkMeteorCollision(const sf::CircleShape& meteor) const {
+        if(checkCollision(meteor)) {
+            window.close();
+        }
     }
 };

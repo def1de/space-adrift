@@ -41,9 +41,14 @@ int main()
     Meteor meteor;
 
     Label score(sf::Vector2f(10.f, 10.f), "Score: ", 0);
-    Label stamina(sf::Vector2f(10.f, 34.f), "Stamina: ", 0);
+    Label stamina(sf::Vector2f(10.f, 34.f), "Fuel: ", 0);
 
-    sf::Clock clock;
+    sf::Clock scoreClock;
+    sf::Clock waveClock;
+    int wave = 0;
+
+    std::vector<Fuel> fuels;
+    std::vector<Meteor> meteors;
     while (window.isOpen())
     {
         for (auto event = sf::Event{}; window.pollEvent(event);)
@@ -54,24 +59,49 @@ int main()
             }
         }
 
-        player.updatePlayer();
-        fuel.move();
-        meteor.move();
+        std::vector<int> fuelsToRemove;
 
-        if (clock.getElapsedTime().asSeconds()>=1.0) {
+        player.updatePlayer();
+
+        if (scoreClock.getElapsedTime().asSeconds()>=1.0) {
             score.increment();
-            clock.restart();
+            scoreClock.restart();
+        }
+
+        if(waveClock.getElapsedTime().asSeconds() >= 2.0) {
+            waveClock.restart();
+            wave++;
+            for(int i = 0; i < wave/2; i++) {
+                meteors.emplace_back();
+            }
+            fuels.emplace_back();
         }
 
         score.update_value();
-        stamina.update_custom_value(std::to_string(player.getStamina()));
+        stamina.update_custom_value(std::to_string(player.getFuel()));
 
         window.clear();
         window.draw(background);
         uiLayer.clear(sf::Color::Transparent);
 
-        window.draw(fuel);
-        window.draw(meteor);
+        for (int i = fuels.size()-1; i>=0; --i) {
+            if (player.checkFuelCollision(fuels[i])) {
+                fuelsToRemove.push_back(i);
+            }
+            fuels[i].move();
+            window.draw(fuels[i]);
+        }
+
+        for(int i : fuelsToRemove) {
+            fuels.erase(fuels.begin() + i);
+        }
+
+        for (auto& meteor : meteors) {
+            player.checkMeteorCollision(meteor);
+            meteor.move();
+            window.draw(meteor);
+        }
+
         window.draw(player);
 
         uiLayer.draw(score);
