@@ -1,15 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
-// Mechanics Description
-// Dash: The player can dash by pressing the left shift key. This will increase the player's speed to 6 for 5 seconds, but costs 20 stamina.
-// Stamina: The player's stamina will regenerate by 1 every second, up to a maximum of 100.
-
-class Player : public sf::CircleShape {
+class Player : public sf::Sprite {
 private:
-    float size = 50.f;
-    int speed = 3;
-    int stamina = 100;
+    std::string tag = "player";
+
+    int speedX = 5;
+    int speedY = 3;
+    int fuel = 100;
     bool isDash = false;
 
     sf::RenderWindow& window;
@@ -17,19 +15,24 @@ private:
     sf::Clock dashClock;
 
 public:
-    explicit Player(sf::RenderWindow& pwindow) : window(pwindow){
-        setRadius(size);
-        setPosition(100.f, 100.f);
-        setFillColor(sf::Color::Yellow);
+    explicit Player(sf::RenderWindow& pwindow, const sf::Texture& ptexture) : window(pwindow) {
+        setTexture(ptexture);
+        setScale(5.f, 5.f);
+
+        auto textureSize = ptexture.getSize();
+        auto windowSize = window.getSize();
+        float centerX = (windowSize.x / 2.0f) - (textureSize.x * getScale().x / 2.0f);
+        float centerY = (windowSize.y / 2.0f) - (textureSize.y * getScale().y / 2.0f);
+
+        setPosition(centerX, centerY);
     }
 
     void updatePlayer() {
         move();
 
-        // Every second update
-        if(clock.getElapsedTime().asSeconds()>=1.0) {
-            if(stamina<100) {
-                stamina++;
+        if(clock.getElapsedTime().asSeconds() >= 1.0) {
+            if(fuel < 100) {
+                fuel++;
             }
             clock.restart();
         }
@@ -40,39 +43,43 @@ public:
     void move() {
         sf::Vector2f movement(0.f, 0.f);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            movement.y -= 1.f;
+            movement.y -= speedY;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            movement.y += 1.f;
+            movement.y += speedY;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            movement.x -= 1.f;
+            movement.x -= speedX;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            movement.x += 1.f;
+            movement.x += speedX;
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && stamina>=20) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && fuel >= 20) {
             dash();
         }
 
-        CircleShape::move(movement.x * speed, movement.y * speed);
+        Sprite::move(movement);
 
-        // Get the player's position and size
-        sf::Vector2f position = getPosition();
-        float radius = getRadius();
-        sf::Vector2u windowSize = window.getSize();
+        // Adjust position to prevent moving out of screen
+        auto position = getPosition();
+        auto globalBounds = getGlobalBounds();
+        auto windowSize = window.getSize();
 
-        // Check and adjust the position if outside the viewport
-        if (position.x + 2 * radius < 0) { // Left
-            position.x = windowSize.x;
-        } else if (position.x > windowSize.x) { // Right
-            position.x = -2 * radius;
+        // Left boundary
+        if (position.x < 0) {
+            position.x = 0;
         }
-
-        if (position.y + 2 * radius < 0) { // Top
-            position.y = windowSize.y;
-        } else if (position.y > windowSize.y) { // Bottom
-            position.y = -2 * radius;
+        // Right boundary
+        else if (position.x + globalBounds.width > windowSize.x) {
+            position.x = windowSize.x - globalBounds.width;
+        }
+        // Top boundary
+        if (position.y < 0) {
+            position.y = 0;
+        }
+        // Bottom boundary
+        else if (position.y + globalBounds.height > windowSize.y) {
+            position.y = windowSize.y - globalBounds.height;
         }
 
         setPosition(position);
@@ -81,29 +88,31 @@ public:
     void dash() {
         if(isDash) return;
         dashClock.restart();
-        speed = 6;
-        stamina -= 20;
+        speedY *= 2;
+        fuel -= 20;
         isDash = true;
     }
 
     void checkDash() {
-        if(dashClock.getElapsedTime().asSeconds()>=5) {
-            speed = 3;
+        if(dashClock.getElapsedTime().asSeconds() >= 5) {
+            speedY /= 2;
             isDash = false;
         }
     }
 
     int getStamina() const {
-        return stamina;
+        return fuel;
+    }
+
+    std::string getTag() const {
+        return tag;
     }
 
     bool checkCollision(const sf::CircleShape& object) const {
-        // Calculate the distance between the centers of the player and food
-        sf::Vector2f playerCenter = getPosition() + sf::Vector2f(getRadius(), getRadius());
-        sf::Vector2f objectCenter = object.getPosition() + sf::Vector2f(object.getRadius(), object.getRadius());
-        float distance = sqrt(pow(playerCenter.x - objectCenter.x, 2) + pow(playerCenter.y - objectCenter.y, 2));
+        return getGlobalBounds().intersects(object.getGlobalBounds());
+    }
 
-        // Check if the distance is less than the sum of the radii (collision)
-        return distance < (getRadius() + object.getRadius());
+    bool checkCollision(const sf::Sprite& object) const {
+        return getGlobalBounds().intersects(object.getGlobalBounds());
     }
 };
