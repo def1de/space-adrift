@@ -51,6 +51,8 @@ int main()
 
     std::vector<Fuel> fuels;
     std::vector<Meteor> meteors;
+
+    bool isPaused = false;
     while (window.isOpen())
     {
         for (auto event = sf::Event{}; window.pollEvent(event);)
@@ -59,6 +61,10 @@ int main()
             {
                 window.close();
             }
+        }
+
+        if(isPaused) {
+            continue;
         }
 
         std::vector<int> fuelsToRemove;
@@ -100,7 +106,7 @@ int main()
         }
 
         for (int i = meteors.size()-1; i>=0; --i) {
-            player.checkMeteorCollision(meteors[i]);
+            isPaused = player.checkMeteorCollision(meteors[i]);
             if (isBelowBottomBoundary(meteors[i], window)) {
                 meteorsToRemove.push_back(i);
             }

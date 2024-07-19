@@ -110,7 +110,26 @@ public:
     }
 
     bool checkCollision(const sf::CircleShape& object) const {
-        return getGlobalBounds().intersects(object.getGlobalBounds());
+        // Calculate the distance between the centers of the player and food
+        sf::Vector2f playerCenter = getPosition() + sf::Vector2f(getGlobalBounds().width/2, getGlobalBounds().height/2);
+        float radius = (getGlobalBounds().width+getGlobalBounds().height) / 4;
+        sf::Vector2f objectCenter = object.getPosition() + sf::Vector2f(object.getRadius(), object.getRadius());
+        float distance = sqrt(pow(playerCenter.x - objectCenter.x, 2) + pow(playerCenter.y - objectCenter.y, 2));
+
+        // Check if the distance is less than the sum of the radii (collision)
+        return distance < (radius + object.getRadius());
+    }
+
+    bool checkRoundCollision(const sf::Sprite& object) const {
+        // Calculate the distance between the centers of the player and food
+        sf::Vector2f playerCenter = getPosition() + sf::Vector2f(getGlobalBounds().width/2, getGlobalBounds().height/2);
+        float playerRadius = (getGlobalBounds().width+getGlobalBounds().height) / 4;
+        sf::Vector2f objectCenter = object.getPosition() + sf::Vector2f(object.getGlobalBounds().width/2, object.getGlobalBounds().height/2);
+        float objectRadius = (object.getGlobalBounds().width+object.getGlobalBounds().height) / 4;
+        float distance = sqrt(pow(playerCenter.x - objectCenter.x, 2) + pow(playerCenter.y - objectCenter.y, 2));
+
+        // Check if the distance is less than the sum of the radii (collision)
+        return distance < (playerRadius + objectRadius);
     }
 
     bool checkCollision(const sf::Sprite& object) const {
@@ -126,9 +145,10 @@ public:
         return false;
     }
 
-    void checkMeteorCollision(const sf::Sprite& meteor) const {
-        if(checkCollision(meteor)) {
-            window.close();
+    bool checkMeteorCollision(const sf::Sprite& meteor) const {
+        if(checkRoundCollision(meteor)){
+            return true;
         }
+        return false;
     }
 };
