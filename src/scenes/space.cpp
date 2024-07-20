@@ -36,6 +36,7 @@ private:
     bool isPaused = false;
 
     Quadtree quadtree;
+    sf::Sprite dummy;
 
 public:
     Space() :
@@ -61,12 +62,20 @@ public:
 
         uiLayer.create(window.getSize().x, window.getSize().y);
 
-        if(!meteorTexture.loadFromFile(ASSETS_DIR "/meteor.png")) {
-            std::cout << "Error loading meteor texture" << std::endl;
+        if (!meteorTexture.loadFromFile(ASSETS_DIR "/meteor.png")) {
+            std::cerr << "Failed to load meteor texture." << std::endl;
+        } else {
+            std::cout << "Meteor texture loaded successfully." << std::endl;
         }
-        if(!fuelTexture.loadFromFile(ASSETS_DIR "/fuel.png")){
-            std::cout << "Error loading fuel texture" << std::endl;
+
+        if (!fuelTexture.loadFromFile(ASSETS_DIR "/fuel.png")) {
+            std::cerr << "Failed to load fuel texture." << std::endl;
+        } else {
+            std::cout << "Fuel texture loaded successfully." << std::endl;
         }
+
+        dummy.setTexture(meteorTexture);
+        dummy.setPosition(500.f, 500.f);
     }
 
     void run() {
@@ -104,7 +113,7 @@ public:
             wave++;
             for(int i = 0; i < wave/2; i++) {
                 meteors.emplace_back(meteorTexture);
-                quadtree.insert(meteors.back());
+                // quadtree.insert(meteors.back());
             }
             fuels.emplace_back(fuelTexture);
         }
@@ -120,22 +129,20 @@ public:
                 fuelsToRemove.push_back(i);
             }
             fuels[i].move();
-            window.draw(fuels[i]);
         }
 
         for(int i : fuelsToRemove) {
             fuels.erase(fuels.begin() + i);
         }
 
-        std::vector<sf::Sprite> nearbyMeteors;
-        quadtree.retrieve(nearbyMeteors, player);
-        for (int i = nearbyMeteors.size()-1; i>=0; --i) {
-            isPaused = player.checkMeteorCollision(nearbyMeteors[i]);
-            if (isBelowBottomBoundary(nearbyMeteors[i], window)) {
+        // std::vector<sf::Sprite> nearbyMeteors;
+        // quadtree.retrieve(nearbyMeteors, player);
+        for (int i = meteors.size()-1; i>=0; --i) {
+            isPaused = player.checkMeteorCollision(meteors[i]);
+            if (isBelowBottomBoundary(meteors[i], window)) {
                 meteorsToRemove.push_back(i);
             }
             meteors[i].move();
-            window.draw(meteors[i]);
         }
 
         for(int i : meteorsToRemove) {
@@ -161,6 +168,13 @@ public:
 
         window.draw(player);
 
+        for (const auto& meteor : meteors) {
+            window.draw(meteor);
+        }
+        for (const auto& fuel : fuels) {
+            window.draw(fuel);
+        }
+
         uiLayer.draw(score);
         uiLayer.draw(stamina);
         uiLayer.draw(fpsText);
@@ -168,6 +182,7 @@ public:
         uiLayer.display();
         sf::Sprite uiSprite(uiLayer.getTexture());
         window.draw(uiSprite);
+        window.draw(dummy);
 
         window.display();
     }
@@ -175,9 +190,9 @@ public:
 
 
     static bool isBelowBottomBoundary(const sf::Sprite& object, const sf::RenderWindow& window) {
-        float objectBottomEdge = object.getPosition().y + object.getGlobalBounds().height;
+        float objectUpEdge = object.getPosition().y;
         float viewportHeight = window.getSize().y;
 
-        return objectBottomEdge > viewportHeight;
+        return objectUpEdge > viewportHeight;
     }
 };
