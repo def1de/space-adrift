@@ -18,6 +18,8 @@ add_executable(main src/main.cpp
         src/objects/fuel.cpp
         src/objects/label.cpp
         src/objects/meteor.cpp
+        src/utils/quadtree.cpp
+        src/scenes/space.cpp
 )
 target_link_libraries(main PRIVATE sfml-graphics)
 target_compile_features(main PRIVATE cxx_std_17)

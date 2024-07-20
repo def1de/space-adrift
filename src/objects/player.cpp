@@ -36,7 +36,8 @@ public:
         if(clock.getElapsedTime().asSeconds() >= 1.0) {
             if(fuel > 0) {
                 fuel--;
-            } else {
+            }
+            else {
                 window.close();
             }
             clock.restart();
