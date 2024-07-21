@@ -1,10 +1,11 @@
+#include <iostream>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "../objects/player.cpp"
 #include "../objects/fuel.cpp"
 #include "../objects/label.cpp"
-#include "../objects/meteor.cpp"
 #include "../utils/quadtree.cpp"
-#include <iostream>
+#include "../objects/meteor.cpp"
 
 class Space {
 
@@ -36,7 +37,8 @@ private:
     bool isPaused = false;
 
     Quadtree quadtree;
-    sf::Sprite dummy;
+
+    sf::Music backgroundMusic;
 
 public:
     Space() :
@@ -74,8 +76,12 @@ public:
             std::cout << "Fuel texture loaded successfully." << std::endl;
         }
 
-        dummy.setTexture(meteorTexture);
-        dummy.setPosition(500.f, 500.f);
+        if(!backgroundMusic.openFromFile(ASSETS_DIR "/soundtrack.ogg")) {
+            std::cerr << "Failed to load background music." << std::endl;
+        } else {
+            backgroundMusic.setLoop(true);
+            backgroundMusic.play();
+        }
     }
 
     void run() {
@@ -182,7 +188,6 @@ public:
         uiLayer.display();
         sf::Sprite uiSprite(uiLayer.getTexture());
         window.draw(uiSprite);
-        window.draw(dummy);
 
         window.display();
     }
