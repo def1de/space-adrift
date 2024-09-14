@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
-#include "../utils/AnimatedSprite.cpp"
+#include <vector>
+#include "../objects/projectile.cpp"
 
 #define MAX_FUEL 10
 
@@ -13,6 +14,10 @@ private:
     sf::Clock fuelClock;
     sf::Clock rotationClock;
     sf::Texture texture;
+
+
+    bool wasMousePressed = false;
+    std::vector<Projectile> projectiles;
 
 public:
     explicit Player(sf::RenderWindow& pwindow) : window(pwindow) {
@@ -28,8 +33,22 @@ public:
         setPosition(windowSize.x / 2.0f, windowSize.y / 2.0f);
     }
 
-    void updatePlayer() {
+    std::vector<Projectile> updatePlayer() {
         move();
+
+        for (auto& projectile : projectiles) {
+            projectile.update();
+        }
+
+        // Shoot if left mouse button is clicked
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            if(!wasMousePressed) {
+                projectiles.emplace_back(getPosition(), getRotation(), ASSETS_DIR "/player_projectile.png", 4, 16, 0.1f);
+                wasMousePressed = true;
+            }
+        } else {
+            wasMousePressed = false;
+        }
 
         if(fuelClock.getElapsedTime().asSeconds() >= 1.0) {
             if(fuel > 0) {
@@ -37,6 +56,7 @@ public:
             }
             fuelClock.restart();
         }
+        return projectiles;
     }
 
     void move() {

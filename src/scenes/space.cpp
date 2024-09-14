@@ -7,6 +7,7 @@
 #include "../utils/quadtree.cpp"
 #include "../objects/meteor.cpp"
 #include "../utils/Camera.cpp"
+// #include "../utils/AnimatedSprite.cpp"
 #include <unordered_set>
 #include <unordered_map>
 
@@ -66,6 +67,7 @@ private:
     bool isPaused = false;
 
     sf::Music backgroundMusic;
+    std::vector<Projectile> projectiles;
 
 public:
     Space() :
@@ -90,7 +92,8 @@ public:
             std::cout << "Meteor texture loaded successfully." << std::endl;
         }
 
-        meteors.emplace_back(meteorTexture);
+        // the mighty meteor doesn't need to be here anymore but he still is because he is the mighty meteor 3:<
+        // meteors.emplace_back(meteorTexture);
 
         if (!fuelTexture.loadFromFile(ASSETS_DIR "/fuel.png")) {
             std::cerr << "Failed to load fuel texture." << std::endl;
@@ -149,28 +152,16 @@ public:
                     std::cout << "\nAdded chunk at (" << coords.x << ", " << coords.y << ")";
                     std::cout << "\nChunk coordinates: (" << chunk.position.x << ", " << chunk.position.y << ")";
                     std::cout << "\n============" << std::endl;
+                } else {
+                    // iterate through the meteors in the chunk
+                    Chunk& chunk = chunks[coords];
+                    for (auto& meteor : chunk.meteors) {
+                        meteor.update();
+                    }
                 }
             }
         }
     }
-
-    void drawChunks() {
-        for (const auto& pair : chunks) {
-            const Chunk& chunk = pair.second;
-
-            // Draw background tile
-            sf::Sprite backgroundTile;
-            backgroundTile.setTexture(backgroundTexture);
-            backgroundTile.setPosition(chunk.position);
-            window.draw(backgroundTile);
-
-            // Draw meteors
-            for (const auto& meteor : chunk.meteors) {
-                window.draw(meteor);
-            }
-        }
-    }
-
 
     void run() {
         while (window.isOpen())
@@ -179,7 +170,6 @@ public:
         }
     }
 
-    // In the update method, adjust the background's position to create a looping effect
     void update() {
         for (auto event = sf::Event{}; window.pollEvent(event);) {
             if (event.type == sf::Event::Closed) {
@@ -194,11 +184,9 @@ public:
         std::vector<int> fuelsToRemove;
         std::vector<int> meteorsToRemove;
 
-        player.updatePlayer();
+        projectiles = player.updatePlayer();
         camera.update(player.getPlayerPosition());
         updateChunks();
-
-        // updateBackground();
 
         if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
             score.increment();
@@ -230,11 +218,9 @@ public:
         draw();
     }
 
-    // In the draw method, draw the background multiple times to ensure it appears continuous
     void draw() {
         window.clear();
 
-        // drawBackground();
         drawChunks();
 
         // Draw game objects
@@ -245,9 +231,33 @@ public:
         for (const auto& fuel : fuels) {
             window.draw(fuel);
         }
+        for (const auto& projectile : projectiles) {
+            window.draw(projectile);
+        }
 
         drawUI();
         window.display();
+    }
+
+    void drawChunks() {
+        // Draw all background tiles first
+        for (const auto& pair : chunks) {
+            const Chunk& chunk = pair.second;
+
+            sf::Sprite backgroundTile;
+            backgroundTile.setTexture(backgroundTexture);
+            backgroundTile.setPosition(chunk.position);
+            window.draw(backgroundTile);
+        }
+
+        // Draw all meteors after background tiles
+        for (const auto& pair : chunks) {
+            const Chunk& chunk = pair.second;
+
+            for (const auto& meteor : chunk.meteors) {
+                window.draw(meteor);
+            }
+        }
     }
 
     // Draw UI elements using a fixed view
