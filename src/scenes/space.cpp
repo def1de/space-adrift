@@ -14,6 +14,7 @@ private:
     sf::RenderWindow window;
     sf::Texture backgroundTexture;
     sf::Sprite background;
+    std::vector<sf::Sprite> backgrounds;
     sf::RenderTexture uiLayer;
     sf::Texture meteorTexture;
     sf::Texture fuelTexture;
@@ -38,8 +39,6 @@ private:
 
     bool isPaused = false;
 
-    Quadtree quadtree;
-
     sf::Music backgroundMusic;
 
 public:
@@ -49,21 +48,28 @@ public:
     camera(window),
     score(sf::Vector2f(10.f, 10.f), "Score: ", 0),
     stamina(sf::Vector2f(10.f, 34.f), "Fuel: ", 0),
-    fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
-    quadtree(0, sf::FloatRect(0, 0, window.getSize().x, window.getSize().y))
+    fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0)
     {
         window.setFramerateLimit(165);
 
         if(!backgroundTexture.loadFromFile(ASSETS_DIR "/background.png")) {
             std::cout << "Error loading background texture" << std::endl;
         }
-        background.setTexture(backgroundTexture);
-
-        sf::Vector2u imageSize = backgroundTexture.getSize();
-        sf::Vector2u viewportSize = window.getSize();
-        float scaleX = static_cast<float>(viewportSize.x) / imageSize.x;
-        float scaleY = static_cast<float>(viewportSize.y) / imageSize.y;
-        background.setScale(scaleX*4, scaleY*4);
+        initializeBackground();
+        // sf::Sprite background1;
+        // background1.setTexture(backgroundTexture);
+        // background1.setPosition(0.f, 0.f);
+        // backgrounds.push_back(background1);
+        //
+        // sf::Sprite background2;
+        // background2.setTexture(backgroundTexture);
+        // background2.setPosition(0.f, backgroundTexture.getSize().y);
+        // backgrounds.push_back(background2);
+        //
+        // sf::Sprite background3;
+        // background3.setTexture(backgroundTexture);
+        // background3.setPosition(backgroundTexture.getSize().x, 0.f);
+        // backgrounds.push_back(background3);
 
         uiLayer.create(window.getSize().x, window.getSize().y);
 
@@ -96,89 +102,61 @@ public:
         }
     }
 
-void update() {
-    for (auto event = sf::Event{}; window.pollEvent(event);) {
-        if (event.type == sf::Event::Closed) {
-            window.close();
+    // In the update method, adjust the background's position to create a looping effect
+    void update() {
+        for (auto event = sf::Event{}; window.pollEvent(event);) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
         }
-    }
 
-    if (isPaused) {
-        return;
-    }
-
-    std::vector<int> fuelsToRemove;
-    std::vector<int> meteorsToRemove;
-
-    player.updatePlayer();
-    camera.update(player.getPlayerPosition());
-
-    if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
-        score.increment();
-        scoreClock.restart();
-    }
-
-    if (waveClock.getElapsedTime().asSeconds() >= 2.0) {
-        waveClock.restart();
-        wave++;
-        for (int i = 0; i < wave / 2; i++) {
-            // meteors.emplace_back(meteorTexture); // no quadtree
-            // quadtree.insert(meteors.back());
+        if (isPaused) {
+            return;
         }
-        // fuels.emplace_back(fuelTexture); // no quadtree
-    }
 
-    score.update_value();
-    if (player.getFuel() <= 0) {
-        isPaused = true;
-    }
-    stamina.update_custom_value(std::to_string(player.getFuel()));
+        std::vector<int> fuelsToRemove;
+        std::vector<int> meteorsToRemove;
 
-    for (int i = fuels.size() - 1; i >= 0; --i) {
-        if (player.checkFuelCollision(fuels[i]) || isBelowBottomBoundary(fuels[i], window)) {
-            fuelsToRemove.push_back(i);
+        player.updatePlayer();
+        camera.update(player.getPlayerPosition());
+
+        updateBackground();
+
+        if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
+            score.increment();
+            scoreClock.restart();
         }
-        fuels[i].move();
-    }
 
-    for (int i : fuelsToRemove) {
-        fuels.erase(fuels.begin() + i);
-    }
-
-    // std::vector<sf::Sprite> nearbyMeteors;
-    // quadtree.retrieve(nearbyMeteors, player);
-    for (int i = meteors.size() - 1; i >= 0; --i) {
-        isPaused = player.checkMeteorCollision(meteors[i]);
-        if (isBelowBottomBoundary(meteors[i], window)) {
-            meteorsToRemove.push_back(i);
+        score.update_value();
+        if (player.getFuel() <= 0) {
+            isPaused = true;
         }
-        // meteors[i].move();
+        stamina.update_custom_value(std::to_string(player.getFuel()));
+
+        for (int i : fuelsToRemove) {
+            fuels.erase(fuels.begin() + i);
+        }
+
+        for (int i : meteorsToRemove) {
+            meteors.erase(meteors.begin() + i);
+        }
+
+        frames++;
+        float currentTime = fpsClock.getElapsedTime().asSeconds();
+        if (currentTime - lastTime >= 1.0f) {
+            fpsText.setString("FPS: " + std::to_string(frames));
+            frames = 0;
+            lastTime += 1.0f;
+        }
+
+        draw();
     }
 
-    for (int i : meteorsToRemove) {
-        meteors.erase(meteors.begin() + i);
-    }
-
-    frames++;
-    float currentTime = fpsClock.getElapsedTime().asSeconds();
-    if (currentTime - lastTime >= 1.0f) {
-        fpsText.setString("FPS: " + std::to_string(frames));
-        frames = 0;
-        lastTime += 1.0f;
-    }
-
-    draw();
-}
-
+    // In the draw method, draw the background multiple times to ensure it appears continuous
     void draw() {
         window.clear();
 
-        // Move background based on the camera view
-        sf::Vector2f viewCenter = camera.getView().getCenter();
-        sf::Vector2f viewSize = camera.getView().getSize();
-        background.setPosition(viewCenter.x - viewSize.x / 2, viewCenter.y - viewSize.y / 2);
-
-        window.draw(background);
+        drawBackground();
 
         // Draw game objects
         window.draw(player);
@@ -189,7 +167,12 @@ void update() {
             window.draw(fuel);
         }
 
-        // Draw UI elements using a fixed view
+        drawUI();
+        window.display();
+    }
+
+    // Draw UI elements using a fixed view
+    void drawUI() {
         sf::View originalView = window.getView();
         window.setView(window.getDefaultView());
 
@@ -203,7 +186,6 @@ void update() {
         window.draw(uiSprite);
 
         window.setView(originalView);
-        window.display();
     }
 
     static bool isBelowBottomBoundary(const sf::Sprite& object, const sf::RenderWindow& window) {
@@ -211,5 +193,60 @@ void update() {
         float viewportHeight = window.getSize().y;
 
         return objectUpEdge > viewportHeight;
+    }
+
+    void initializeBackground() {
+        sf::Vector2u imageSize = backgroundTexture.getSize();
+        sf::Vector2u viewportSize = window.getSize();
+        // Calculate the number of background tiles needed to cover the viewport
+        int tilesX = static_cast<int>(std::ceil(viewportSize.x / (imageSize.x))) + 2;
+        int tilesY = static_cast<int>(std::ceil(viewportSize.y / (imageSize.y))) + 2;
+
+        // Clear the current background tiles
+        backgrounds.clear();
+
+        // Generate the background tiles
+        for (int i = -1; i <= tilesX; ++i) {
+            for (int j = -1; j <= tilesY; ++j) {
+                sf::Sprite backgroundTile;
+                backgroundTile.setTexture(backgroundTexture);
+                backgroundTile.setPosition(i * imageSize.x, j * imageSize.y);
+                backgrounds.push_back(backgroundTile);
+            }
+        }
+    }
+
+    void updateBackground() {
+        sf::Vector2f playerPosition = player.getPosition();
+        sf::Vector2u imageSize = backgroundTexture.getSize();
+        sf::Vector2u viewportSize = window.getSize();
+
+        // Calculate the number of background tiles needed to cover the viewport
+        int tilesX = static_cast<int>(std::ceil(viewportSize.x / static_cast<float>(imageSize.x))) + 2;
+        int tilesY = static_cast<int>(std::ceil(viewportSize.y / static_cast<float>(imageSize.y))) + 2;
+
+        // Clear the current background tiles
+        backgrounds.clear();
+
+        // Calculate the starting position of the background tiles
+        // Use fmod in a way that handles negative coordinates
+        float startX = std::floor(playerPosition.x / imageSize.x) * imageSize.x - imageSize.x;
+        float startY = std::floor(playerPosition.y / imageSize.y) * imageSize.y - imageSize.y;
+
+        // Generate the background tiles
+        for (int i = -1; i <= tilesX; ++i) {
+            for (int j = -1; j <= tilesY; ++j) {
+                sf::Sprite backgroundTile;
+                backgroundTile.setTexture(backgroundTexture);
+                backgroundTile.setPosition(startX + i * imageSize.x, startY + j * imageSize.y);
+                backgrounds.push_back(backgroundTile);
+            }
+        }
+    }
+
+    void drawBackground() {
+        for (const auto& background : backgrounds) {
+            window.draw(background);
+        }
     }
 };

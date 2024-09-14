@@ -3,24 +3,22 @@
 #include "../utils/AnimatedSprite.cpp"
 
 #define MAX_FUEL 10
-#define DASH_COST 5
 
 class Player : public sf::Sprite {
 private:
     int speed = 5;
     int fuel = MAX_FUEL;
-    bool isDash = false;
 
     sf::RenderWindow& window;
-    sf::Clock clock;
-    sf::Clock dashClock;
+    sf::Clock fuelClock;
+    sf::Clock rotationClock;
     sf::Texture texture;
 
 public:
     explicit Player(sf::RenderWindow& pwindow) : window(pwindow) {
         texture.loadFromFile(ASSETS_DIR "/player.png");
         setTexture(texture);
-        setScale(5.f, 5.f);
+        setScale(3.f, 3.f);
 
         auto textureSize = texture.getSize();
         auto windowSize = window.getSize();
@@ -33,17 +31,12 @@ public:
     void updatePlayer() {
         move();
 
-        if(clock.getElapsedTime().asSeconds() >= 1.0) {
+        if(fuelClock.getElapsedTime().asSeconds() >= 1.0) {
             if(fuel > 0) {
                 // fuel--;
             }
-            else {
-                window.close();
-            }
-            clock.restart();
+            fuelClock.restart();
         }
-
-        if(isDash) checkDash();
     }
 
     void move() {
@@ -90,9 +83,8 @@ public:
         Sprite::move(movement);
 
         // Smoothly rotate the sprite
-        float deltaTime = clock.restart().asSeconds();
+        float deltaTime = rotationClock.restart().asSeconds();
         rotatate(deltaTime, worldPosition);
-        // adjustPosition();
     }
 
     void rotatate(float deltaTime, sf::Vector2f worldPosition) {
@@ -128,98 +120,13 @@ public:
         setRotation(currentAngle + rotationAmount);
     }
 
-    // Adjust position to prevent moving out of screen
-    void adjustPosition() {
-        auto position = getPosition();
-        auto globalBounds = getGlobalBounds();
-        auto windowSize = window.getSize();
-
-        globalBounds.width = globalBounds.width/2;
-        globalBounds.height = globalBounds.height/2;
-
-        // Left boundary
-        if (position.x < globalBounds.width) {
-            position.x = globalBounds.width;
-        }
-        // Right boundary
-        else if (position.x + globalBounds.width > windowSize.x) {
-            position.x = windowSize.x - globalBounds.width;
-        }
-        // Top boundary
-        if (position.y < globalBounds.height) {
-            position.y = globalBounds.height;
-        }
-        // Bottom boundary
-        else if (position.y + globalBounds.height > windowSize.y) {
-            position.y = windowSize.y - globalBounds.height;
-        }
-
-        setPosition(position);
-    }
-
-    void dash() {
-        if(isDash) return;
-        dashClock.restart();
-        speed *= 2;
-        fuel -= DASH_COST;
-        isDash = true;
-    }
-
-    void checkDash() {
-        if(dashClock.getElapsedTime().asSeconds() >= 5) {
-            speed /= 2;
-            isDash = false;
-        }
-    }
-
+    // Get player fuel
     int getFuel() const {
         return fuel;
     }
 
+    // Get player position for camera
     sf::Vector2f getPlayerPosition() const {
         return getPosition();
-    }
-
-    bool checkCollision(const sf::CircleShape& object) const {
-        // Calculate the distance between the centers of the player and food
-        sf::Vector2f playerCenter = getPosition() + sf::Vector2f(getGlobalBounds().width/2, getGlobalBounds().height/2);
-        float radius = (getGlobalBounds().width+getGlobalBounds().height) / 4;
-        sf::Vector2f objectCenter = object.getPosition() + sf::Vector2f(object.getRadius(), object.getRadius());
-        float distance = sqrt(pow(playerCenter.x - objectCenter.x, 2) + pow(playerCenter.y - objectCenter.y, 2));
-
-        // Check if the distance is less than the sum of the radii (collision)
-        return distance < (radius + object.getRadius());
-    }
-
-    bool checkRoundCollision(const sf::Sprite& object) const {
-        // Calculate the distance between the centers of the player and food
-        sf::Vector2f playerCenter = getPosition() + sf::Vector2f(getGlobalBounds().width/2, getGlobalBounds().height/2);
-        float playerRadius = (getGlobalBounds().width+getGlobalBounds().height) / 4;
-        sf::Vector2f objectCenter = object.getPosition() + sf::Vector2f(object.getGlobalBounds().width/2, object.getGlobalBounds().height/2);
-        float objectRadius = (object.getGlobalBounds().width+object.getGlobalBounds().height) / 4;
-        float distance = sqrt(pow(playerCenter.x - objectCenter.x, 2) + pow(playerCenter.y - objectCenter.y, 2));
-
-        // Check if the distance is less than the sum of the radii (collision)
-        return distance < (playerRadius + objectRadius);
-    }
-
-    bool checkCollision(const sf::Sprite& object) const {
-        return getGlobalBounds().intersects(object.getGlobalBounds());
-    }
-
-    bool checkFuelCollision(const sf::Sprite& fuel) {
-        if(checkCollision(fuel) && this->fuel<MAX_FUEL){
-            this->fuel += 5;
-            if (this->fuel > MAX_FUEL) this->fuel = MAX_FUEL;
-            return true;
-        }
-        return false;
-    }
-
-    bool checkMeteorCollision(const sf::Sprite& meteor) const {
-        if(checkRoundCollision(meteor)){
-            return true;
-        }
-        return false;
     }
 };
