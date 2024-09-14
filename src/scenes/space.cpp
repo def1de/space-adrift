@@ -118,10 +118,10 @@ public:
             waveClock.restart();
             wave++;
             for(int i = 0; i < wave/2; i++) {
-                meteors.emplace_back(meteorTexture);
+                // meteors.emplace_back(meteorTexture); // no quadtree
                 // quadtree.insert(meteors.back());
             }
-            fuels.emplace_back(fuelTexture);
+            // fuels.emplace_back(fuelTexture); // no quadtree
         }
 
         score.update_value();
