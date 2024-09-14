@@ -92,7 +92,7 @@ public:
         // Smoothly rotate the sprite
         float deltaTime = clock.restart().asSeconds();
         rotatate(deltaTime, worldPosition);
-        adjustPosition();
+        // adjustPosition();
     }
 
     void rotatate(float deltaTime, sf::Vector2f worldPosition) {
@@ -174,6 +174,10 @@ public:
 
     int getFuel() const {
         return fuel;
+    }
+
+    sf::Vector2f getPlayerPosition() const {
+        return getPosition();
     }
 
     bool checkCollision(const sf::CircleShape& object) const {
