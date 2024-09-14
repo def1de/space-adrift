@@ -7,10 +7,36 @@
 #include "../utils/quadtree.cpp"
 #include "../objects/meteor.cpp"
 #include "../utils/Camera.cpp"
+#include <unordered_set>
+#include <unordered_map>
 
 class Space {
 
 private:
+    struct Chunk {
+        sf::Vector2f position;  // Absolute position of the chunk
+        std::vector<Meteor> meteors;  // Meteors in this chunk
+    };
+
+    struct ChunkCoordinates {
+        int x;
+        int y;
+
+        bool operator==(const ChunkCoordinates& other) const {
+            return x == other.x && y == other.y;
+        }
+    };
+
+    // Custom hash function for ChunkCoordinates
+    struct ChunkCoordinatesHash {
+        std::size_t operator()(const ChunkCoordinates& key) const {
+            return std::hash<int>()(key.x) ^ (std::hash<int>()(key.y) << 1);
+        }
+    };
+
+    // Container for chunks
+    std::unordered_map<ChunkCoordinates, Chunk, ChunkCoordinatesHash> chunks;
+
     sf::RenderWindow window;
     sf::Texture backgroundTexture;
     sf::Sprite background;
@@ -55,21 +81,6 @@ public:
         if(!backgroundTexture.loadFromFile(ASSETS_DIR "/background.png")) {
             std::cout << "Error loading background texture" << std::endl;
         }
-        initializeBackground();
-        // sf::Sprite background1;
-        // background1.setTexture(backgroundTexture);
-        // background1.setPosition(0.f, 0.f);
-        // backgrounds.push_back(background1);
-        //
-        // sf::Sprite background2;
-        // background2.setTexture(backgroundTexture);
-        // background2.setPosition(0.f, backgroundTexture.getSize().y);
-        // backgrounds.push_back(background2);
-        //
-        // sf::Sprite background3;
-        // background3.setTexture(backgroundTexture);
-        // background3.setPosition(backgroundTexture.getSize().x, 0.f);
-        // backgrounds.push_back(background3);
 
         uiLayer.create(window.getSize().x, window.getSize().y);
 
@@ -95,6 +106,72 @@ public:
         }
     }
 
+    void updateChunks() {
+        sf::Vector2f playerPosition = player.getPosition();
+        sf::Vector2u imageSize = backgroundTexture.getSize();
+
+        // Calculate the number of background tiles needed to cover the viewport
+        int tilesX = static_cast<int>(std::ceil(window.getSize().x / static_cast<float>(imageSize.x))) + 2;
+        int tilesY = static_cast<int>(std::ceil(window.getSize().y / static_cast<float>(imageSize.y))) + 2;
+
+        // Calculate the starting position of the chunks based on the universe center
+        int startX = std::floor(playerPosition.x / imageSize.x);
+        int startY = std::floor(playerPosition.y / imageSize.y);
+
+        // Generate new chunks
+        for (int i = -tilesX; i <= tilesX; ++i) {
+            for (int j = -tilesY; j <= tilesY; ++j) {
+                int coordX = startX + i;
+                int coordY = startY + j;
+
+                ChunkCoordinates coords = {coordX, coordY};
+
+                // Check if the chunk already exists
+                if (chunks.find(coords) == chunks.end()) {
+                    Chunk chunk;
+                    chunk.position = sf::Vector2f((startX + i) * 1024, (startY + j) * 1024);
+
+                    // Randomly spawn meteors
+                    int numMeteors = rand() % 3;
+                    for (int m = 0; m < numMeteors; ++m) {
+                        Meteor meteor(meteorTexture);
+                        float meteorX = chunk.position.x + rand() % static_cast<int>(imageSize.x - meteor.getGlobalBounds().width*2)+meteor.getGlobalBounds().width*2;
+                        float meteorY = chunk.position.y + rand() % static_cast<int>(imageSize.y - meteor.getGlobalBounds().height*2)+meteor.getGlobalBounds().height*2;
+                        meteor.setPosition(meteorX, meteorY);
+                        chunk.meteors.push_back(meteor);
+                    }
+
+                    chunks[coords] = chunk;
+                    std::cout << "\n============";
+                    std::cout << "\nChecking chunk at (" << i << ", " << j << ")";
+                    std::cout << "\nPlayers Coordinates: (" << playerPosition.x << ", " << playerPosition.y << ")";
+                    std::cout << "\nStart X: " << startX << " Start Y: " << startY;
+                    std::cout << "\nAdded chunk at (" << coords.x << ", " << coords.y << ")";
+                    std::cout << "\nChunk coordinates: (" << chunk.position.x << ", " << chunk.position.y << ")";
+                    std::cout << "\n============" << std::endl;
+                }
+            }
+        }
+    }
+
+    void drawChunks() {
+        for (const auto& pair : chunks) {
+            const Chunk& chunk = pair.second;
+
+            // Draw background tile
+            sf::Sprite backgroundTile;
+            backgroundTile.setTexture(backgroundTexture);
+            backgroundTile.setPosition(chunk.position);
+            window.draw(backgroundTile);
+
+            // Draw meteors
+            for (const auto& meteor : chunk.meteors) {
+                window.draw(meteor);
+            }
+        }
+    }
+
+
     void run() {
         while (window.isOpen())
         {
@@ -119,8 +196,9 @@ public:
 
         player.updatePlayer();
         camera.update(player.getPlayerPosition());
+        updateChunks();
 
-        updateBackground();
+        // updateBackground();
 
         if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
             score.increment();
@@ -156,7 +234,8 @@ public:
     void draw() {
         window.clear();
 
-        drawBackground();
+        // drawBackground();
+        drawChunks();
 
         // Draw game objects
         window.draw(player);
@@ -193,60 +272,5 @@ public:
         float viewportHeight = window.getSize().y;
 
         return objectUpEdge > viewportHeight;
-    }
-
-    void initializeBackground() {
-        sf::Vector2u imageSize = backgroundTexture.getSize();
-        sf::Vector2u viewportSize = window.getSize();
-        // Calculate the number of background tiles needed to cover the viewport
-        int tilesX = static_cast<int>(std::ceil(viewportSize.x / (imageSize.x))) + 2;
-        int tilesY = static_cast<int>(std::ceil(viewportSize.y / (imageSize.y))) + 2;
-
-        // Clear the current background tiles
-        backgrounds.clear();
-
-        // Generate the background tiles
-        for (int i = -1; i <= tilesX; ++i) {
-            for (int j = -1; j <= tilesY; ++j) {
-                sf::Sprite backgroundTile;
-                backgroundTile.setTexture(backgroundTexture);
-                backgroundTile.setPosition(i * imageSize.x, j * imageSize.y);
-                backgrounds.push_back(backgroundTile);
-            }
-        }
-    }
-
-    void updateBackground() {
-        sf::Vector2f playerPosition = player.getPosition();
-        sf::Vector2u imageSize = backgroundTexture.getSize();
-        sf::Vector2u viewportSize = window.getSize();
-
-        // Calculate the number of background tiles needed to cover the viewport
-        int tilesX = static_cast<int>(std::ceil(viewportSize.x / static_cast<float>(imageSize.x))) + 2;
-        int tilesY = static_cast<int>(std::ceil(viewportSize.y / static_cast<float>(imageSize.y))) + 2;
-
-        // Clear the current background tiles
-        backgrounds.clear();
-
-        // Calculate the starting position of the background tiles
-        // Use fmod in a way that handles negative coordinates
-        float startX = std::floor(playerPosition.x / imageSize.x) * imageSize.x - imageSize.x;
-        float startY = std::floor(playerPosition.y / imageSize.y) * imageSize.y - imageSize.y;
-
-        // Generate the background tiles
-        for (int i = -1; i <= tilesX; ++i) {
-            for (int j = -1; j <= tilesY; ++j) {
-                sf::Sprite backgroundTile;
-                backgroundTile.setTexture(backgroundTexture);
-                backgroundTile.setPosition(startX + i * imageSize.x, startY + j * imageSize.y);
-                backgrounds.push_back(backgroundTile);
-            }
-        }
-    }
-
-    void drawBackground() {
-        for (const auto& background : backgrounds) {
-            window.draw(background);
-        }
     }
 };
