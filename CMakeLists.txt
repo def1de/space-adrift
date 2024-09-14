@@ -20,6 +20,7 @@ add_executable(main src/main.cpp
         src/objects/meteor.cpp
         src/utils/quadtree.cpp
         src/scenes/space.cpp
+        src/utils/AnimatedSprite.cpp
 )
 target_link_libraries(main PRIVATE sfml-graphics sfml-audio)
 target_compile_features(main PRIVATE cxx_std_17)

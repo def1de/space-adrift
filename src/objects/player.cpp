@@ -1,13 +1,13 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include "../utils/AnimatedSprite.cpp"
 
 #define MAX_FUEL 10
 #define DASH_COST 5
 
 class Player : public sf::Sprite {
 private:
-    int speedX = 5;
-    int speedY = 3;
+    int speed = 5;
     int fuel = MAX_FUEL;
     bool isDash = false;
 
@@ -18,7 +18,7 @@ private:
 
 public:
     explicit Player(sf::RenderWindow& pwindow) : window(pwindow) {
-        texture.loadFromFile(ASSETS_DIR "/ship.png");
+        texture.loadFromFile(ASSETS_DIR "/player.png");
         setTexture(texture);
         setScale(5.f, 5.f);
 
@@ -47,32 +47,55 @@ public:
     }
 
     void move() {
-        float deltaTime = clock.restart().asSeconds();
-        rotatate(deltaTime);
-        sf::Vector2f movement(0.f, 0.f);
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            movement.y -= speedY;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            movement.y += speedY;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            movement.x -= speedX;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            movement.x += speedX;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && fuel >= DASH_COST) {
-            dash();
+        sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+        sf::Vector2f worldPosition = window.mapPixelToCoords(mousePosition);
+        float playerRotation = getRotation() * M_PI / 180.0f - M_PI / 2.0f;
+
+        // Calculate current movement direction
+        sf::Vector2f movement(cos(playerRotation), sin(playerRotation));
+
+        // Normalize the movement vector
+        float length = sqrt(movement.x * movement.x + movement.y * movement.y);
+        if (length != 0) {
+            movement.x /= length;
+            movement.y /= length;
         }
 
+        // Calculate the target direction towards the cursor
+        sf::Vector2f playerPosition = getPosition();
+        sf::Vector2f targetDirection = worldPosition - playerPosition;
+        length = sqrt(targetDirection.x * targetDirection.x + targetDirection.y * targetDirection.y);
+        if (length != 0) {
+            targetDirection.x /= length;
+            targetDirection.y /= length;
+        }
+
+        // Apply a force to gradually change direction
+        float turnRate = 0.1f; // Adjust this value to control the turning speed
+        movement.x = (1 - turnRate) * movement.x + turnRate * targetDirection.x;
+        movement.y = (1 - turnRate) * movement.y + turnRate * targetDirection.y;
+
+        // Normalize the movement vector again
+        length = sqrt(movement.x * movement.x + movement.y * movement.y);
+        if (length != 0) {
+            movement.x /= length;
+            movement.y /= length;
+        }
+
+        // Scale by speed
+        movement.x *= speed;
+        movement.y *= speed;
+
+        // Move the sprite
         Sprite::move(movement);
+
+        // Smoothly rotate the sprite
+        float deltaTime = clock.restart().asSeconds();
+        rotatate(deltaTime, worldPosition);
         adjustPosition();
     }
 
-    void rotatate(float deltaTime) {
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-        sf::Vector2f worldPosition = window.mapPixelToCoords(mousePosition);
+    void rotatate(float deltaTime, sf::Vector2f worldPosition) {
         sf::Vector2f playerPosition = getPosition();
         float angle_rad = atan2(worldPosition.y - playerPosition.y, worldPosition.x - playerPosition.x) + M_PI / 2;
         float angle_deg = angle_rad * 180 / M_PI;
@@ -111,17 +134,20 @@ public:
         auto globalBounds = getGlobalBounds();
         auto windowSize = window.getSize();
 
+        globalBounds.width = globalBounds.width/2;
+        globalBounds.height = globalBounds.height/2;
+
         // Left boundary
-        if (position.x < 0) {
-            position.x = 0;
+        if (position.x < globalBounds.width) {
+            position.x = globalBounds.width;
         }
         // Right boundary
         else if (position.x + globalBounds.width > windowSize.x) {
             position.x = windowSize.x - globalBounds.width;
         }
         // Top boundary
-        if (position.y < 0) {
-            position.y = 0;
+        if (position.y < globalBounds.height) {
+            position.y = globalBounds.height;
         }
         // Bottom boundary
         else if (position.y + globalBounds.height > windowSize.y) {
@@ -134,14 +160,14 @@ public:
     void dash() {
         if(isDash) return;
         dashClock.restart();
-        speedY *= 2;
+        speed *= 2;
         fuel -= DASH_COST;
         isDash = true;
     }
 
     void checkDash() {
         if(dashClock.getElapsedTime().asSeconds() >= 5) {
-            speedY /= 2;
+            speed /= 2;
             isDash = false;
         }
     }
