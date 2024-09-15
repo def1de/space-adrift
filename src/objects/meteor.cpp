@@ -8,18 +8,17 @@ private:
 public:
     explicit Meteor(sf::Texture& texture) {
         setTexture(texture);
-        // setRotationCenter();
+        setScale(3.f, 3.f);
+        setRotationCenter();
         speed = rand()%3 + 1;
-        setPosition(rand()%1920, rand()%150*-1);
     }
 
     void setRotationCenter() {
-        auto bounds = getGlobalBounds();
+        auto bounds = getLocalBounds();
         setOrigin(bounds.width / 2, bounds.height / 2);
     }
 
-    void move() {
-        Sprite::move(0.f, speed);
-        // setRotation(getRotation()+.05f*speed);
+    void update() {
+        setRotation(getRotation()+.05f*speed);
     }
 };
