@@ -4,12 +4,14 @@
 #include "../objects/player.cpp"
 #include "../objects/fuel.cpp"
 #include "../objects/label.cpp"
-#include "../utils/quadtree.cpp"
+#include "../utils/quadtree.hpp"
 #include "../objects/meteor.cpp"
 #include "../utils/Camera.cpp"
 // #include "../utils/AnimatedSprite.cpp"
 #include <unordered_set>
 #include <unordered_map>
+
+#define DEBUG_CHUNKS 0
 
 class Space {
 
@@ -69,6 +71,8 @@ private:
     sf::Music backgroundMusic;
     std::vector<Projectile> projectiles;
 
+    Quad quadtree;
+
 public:
     Space() :
     window(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen),
@@ -76,7 +80,8 @@ public:
     camera(window),
     score(sf::Vector2f(10.f, 10.f), "Score: ", 0),
     stamina(sf::Vector2f(10.f, 34.f), "Fuel: ", 0),
-    fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0)
+    fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
+    quadtree(sf::FloatRect(0, 0, 5000, 5000))
     {
         window.setFramerateLimit(165);
 
@@ -110,6 +115,7 @@ public:
     }
 
     void updateChunks() {
+
         sf::Vector2f playerPosition = player.getPosition();
         sf::Vector2u imageSize = backgroundTexture.getSize();
 
@@ -145,6 +151,7 @@ public:
                     }
 
                     chunks[coords] = chunk;
+#if DEBUG_CHUNKS
                     std::cout << "\n============";
                     std::cout << "\nChecking chunk at (" << i << ", " << j << ")";
                     std::cout << "\nPlayers Coordinates: (" << playerPosition.x << ", " << playerPosition.y << ")";
@@ -152,6 +159,7 @@ public:
                     std::cout << "\nAdded chunk at (" << coords.x << ", " << coords.y << ")";
                     std::cout << "\nChunk coordinates: (" << chunk.position.x << ", " << chunk.position.y << ")";
                     std::cout << "\n============" << std::endl;
+#endif
                 } else {
                     // iterate through the meteors in the chunk
                     Chunk& chunk = chunks[coords];
@@ -159,6 +167,15 @@ public:
                         meteor.update();
                     }
                 }
+            }
+        }
+
+        quadtree.clear();  // Clear the quadtree before each update
+        for (auto& pair : chunks) {
+            Chunk& chunk = pair.second;
+            for (auto& meteor : chunk.meteors) {
+                Node* node = new Node(meteor.getPosition(), &meteor);
+                quadtree.insert(node);  // Insert the meteor into the quadtree
             }
         }
     }
@@ -178,14 +195,26 @@ public:
         }
 
         if (isPaused) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+                isPaused = false;
+            }
             return;
         }
 
-        std::vector<int> fuelsToRemove;
-        std::vector<int> meteorsToRemove;
+        std::vector<Meteor*> nearbyMeteors;
+        sf::FloatRect playerRange = player.getGlobalBounds();  // Use player's bounding box
+        quadtree.retrieve(nearbyMeteors, playerRange);
+
+        // Check for collisions
+        for (Meteor* meteor : nearbyMeteors) {
+            if (player.getGlobalBounds().intersects(meteor->getGlobalBounds())) {
+                isPaused = true;
+            }
+        }
 
         projectiles = player.updatePlayer();
         camera.update(player.getPlayerPosition());
+
         updateChunks();
 
         if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
@@ -199,22 +228,8 @@ public:
         }
         stamina.update_custom_value(std::to_string(player.getFuel()));
 
-        for (int i : fuelsToRemove) {
-            fuels.erase(fuels.begin() + i);
-        }
 
-        for (int i : meteorsToRemove) {
-            meteors.erase(meteors.begin() + i);
-        }
-
-        frames++;
-        float currentTime = fpsClock.getElapsedTime().asSeconds();
-        if (currentTime - lastTime >= 1.0f) {
-            fpsText.setString("FPS: " + std::to_string(frames));
-            frames = 0;
-            lastTime += 1.0f;
-        }
-
+        fps();
         draw();
     }
 
@@ -282,5 +297,15 @@ public:
         float viewportHeight = window.getSize().y;
 
         return objectUpEdge > viewportHeight;
+    }
+
+    void fps() {
+        frames++;
+        float currentTime = fpsClock.getElapsedTime().asSeconds();
+        if (currentTime - lastTime >= 1.0f) {
+            fpsText.setString("FPS: " + std::to_string(frames));
+            frames = 0;
+            lastTime += 1.0f;
+        }
     }
 };

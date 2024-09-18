@@ -1,16 +1,39 @@
-#include "quadtree.hpp"
+#include <SFML/Graphics.hpp>
 #include "../objects/meteor.cpp"
 
-// Constructor, Destructor, and Method Implementations
+struct Node {
+    sf::Vector2f pos;
+    Meteor* meteor;  // Store a pointer to the meteor object
 
-Quad::Quad(sf::FloatRect _boundary)
-        :boundary(_boundary), n(nullptr),
-        topLeftTree(nullptr), topRightTree(nullptr),
-        botLeftTree(nullptr), botRightTree(nullptr) {}
+    Node(sf::Vector2f _pos, Meteor* _meteor)
+        : pos(_pos), meteor(_meteor) {}
+};
 
-Quad::~Quad() {
-    clear();
-}
+class Quad {
+    // Hold details of the boundary of this node (using float for more precision)
+    sf::FloatRect boundary;
+
+    // Contains details of a node (only one meteor at this level)
+    Node* n;
+
+    // Children of this tree
+    Quad* topLeftTree;
+    Quad* topRightTree;
+    Quad* botLeftTree;
+    Quad* botRightTree;
+
+public:
+    Quad(sf::FloatRect _boundary)
+        : boundary(_boundary), n(nullptr),
+          topLeftTree(nullptr), topRightTree(nullptr),
+          botLeftTree(nullptr), botRightTree(nullptr) {}
+
+    void insert(Node*);
+    void retrieve(std::vector<Meteor*>& returnObjects, sf::FloatRect range);
+    bool inBoundary(const sf::Vector2f& pos);
+    bool inRange(const sf::FloatRect& range, const sf::FloatRect& boundary);
+    void clear();
+};
 
 void Quad::insert(Node* node)
 {
@@ -102,3 +125,4 @@ void Quad::clear() {
         botRightTree = nullptr;
     }
 }
+
