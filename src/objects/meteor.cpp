@@ -21,6 +21,7 @@ public:
     }
 
     void update() {
-        setRotation(getRotation()+.05f*speed);
+        // setRotation(getRotation()+.05f*speed);
+        return;
     }
 };

@@ -75,7 +75,6 @@ private:
 
     Quad quadtree;
 
-    sf::RectangleShape dummy;
 public:
     Space() :
     window(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen),
@@ -93,10 +92,6 @@ public:
         if(!backgroundTexture.loadFromFile(ASSETS_DIR "/background.png")) {
             std::cout << "Error loading background texture" << std::endl;
         }
-
-        dummy.setSize(sf::Vector2f(100.f, 100.f));
-        dummy.setFillColor(sf::Color::White);
-        dummy.setPosition(0, 0);
 
         uiLayer.create(window.getSize().x, window.getSize().y);
 
@@ -227,9 +222,7 @@ public:
         for (Meteor* meteor : nearbyMeteors) {
             if (player.checkCollision(meteor->getRadius(), meteor->getPosition())) {
                 isPaused = true;
-                //Draw a dummy rectangle of the size of collided object at its position to indicate collision
-                dummy.setSize(sf::Vector2f(meteor->getLocalBounds().width, meteor->getLocalBounds().height));
-                dummy.setPosition(meteor->getPosition());
+                //Draw a dummy circle of the radius of the meteor that collided with the player
             }
         }
 
@@ -277,7 +270,6 @@ public:
         for (const auto& projectile : projectiles) {
             window.draw(projectile);
         }
-        window.draw(dummy);
 
         drawUI();
         window.display();

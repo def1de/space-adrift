@@ -33,7 +33,7 @@ public:
 
         setPosition(windowSize.x / 2.0f, windowSize.y / 2.0f);
 
-        sf::FloatRect bounds = getGlobalBounds();
+        sf::FloatRect bounds = getLocalBounds();
         radius = bounds.width / 2;
     }
 
@@ -158,5 +158,9 @@ public:
         sf::Vector2f playerPosition = getPosition();
         float distance = sqrt(pow(playerPosition.x - position.x, 2) + pow(playerPosition.y - position.y, 2));
         return distance < enemyRadius + radius;
+    }
+
+    float getRadius() const {
+        return radius;
     }
 };
