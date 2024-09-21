@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #define DEBUG_CHUNKS 0
+#define CHUNK_SIZE 1024
 
 class Space {
 
@@ -52,12 +53,13 @@ private:
 
     Label score;
     Label stamina;
+    Label fpsText;
+    Label position;
+    Label chunk;
 
     sf::Clock scoreClock;
     sf::Clock waveClock;
     int wave = 0;
-
-    Label fpsText;
 
     sf::Clock fpsClock;
     unsigned int frames = 0;
@@ -73,6 +75,7 @@ private:
 
     Quad quadtree;
 
+    sf::RectangleShape dummy;
 public:
     Space() :
     window(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen),
@@ -81,6 +84,8 @@ public:
     score(sf::Vector2f(10.f, 10.f), "Score: ", 0),
     stamina(sf::Vector2f(10.f, 34.f), "Fuel: ", 0),
     fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
+    position(sf::Vector2f(10.f, 82.f), "Position: ", 0),
+    chunk(sf::Vector2f(10.f, 106.f), "Chunk: ", 0),
     quadtree(sf::FloatRect(0, 0, 5000, 5000))
     {
         window.setFramerateLimit(165);
@@ -88,6 +93,10 @@ public:
         if(!backgroundTexture.loadFromFile(ASSETS_DIR "/background.png")) {
             std::cout << "Error loading background texture" << std::endl;
         }
+
+        dummy.setSize(sf::Vector2f(100.f, 100.f));
+        dummy.setFillColor(sf::Color::White);
+        dummy.setPosition(0, 0);
 
         uiLayer.create(window.getSize().x, window.getSize().y);
 
@@ -138,14 +147,14 @@ public:
                 // Check if the chunk already exists
                 if (chunks.find(coords) == chunks.end()) {
                     Chunk chunk;
-                    chunk.position = sf::Vector2f((startX + i) * 1024, (startY + j) * 1024);
+                    chunk.position = sf::Vector2f((startX + i) * CHUNK_SIZE, (startY + j) * CHUNK_SIZE);
 
                     // Randomly spawn meteors
                     int numMeteors = rand() % 3;
                     for (int m = 0; m < numMeteors; ++m) {
                         Meteor meteor(meteorTexture);
-                        float meteorX = chunk.position.x + rand() % static_cast<int>(imageSize.x - meteor.getGlobalBounds().width*2)+meteor.getGlobalBounds().width*2;
-                        float meteorY = chunk.position.y + rand() % static_cast<int>(imageSize.y - meteor.getGlobalBounds().height*2)+meteor.getGlobalBounds().height*2;
+                        float meteorX = chunk.position.x + rand() % static_cast<int>(CHUNK_SIZE - meteor.getGlobalBounds().width*2)+meteor.getGlobalBounds().width*2;
+                        float meteorY = chunk.position.y + rand() % static_cast<int>(CHUNK_SIZE - meteor.getGlobalBounds().height*2)+meteor.getGlobalBounds().height*2;
                         meteor.setPosition(meteorX, meteorY);
                         chunk.meteors.push_back(meteor);
                     }
@@ -167,17 +176,26 @@ public:
                         meteor.update();
                     }
                 }
+
+                quadtree.clear();  // Clear the quadtree before each update
+                for (auto& pair : chunks) {
+                    Chunk& chunk = pair.second;
+                    for (auto& meteor : chunk.meteors) {
+                        Node* node = new Node(meteor.getPosition(), &meteor, meteor.getRadius());
+                        quadtree.insert(node);  // Insert the meteor into the quadtree
+                    }
+                }
             }
         }
 
-        quadtree.clear();  // Clear the quadtree before each update
-        for (auto& pair : chunks) {
-            Chunk& chunk = pair.second;
-            for (auto& meteor : chunk.meteors) {
-                Node* node = new Node(meteor.getPosition(), &meteor);
-                quadtree.insert(node);  // Insert the meteor into the quadtree
-            }
-        }
+        // quadtree.clear();  // Clear the quadtree before each update
+        // for (auto& pair : chunks) {
+        //     Chunk& chunk = pair.second;
+        //     for (auto& meteor : chunk.meteors) {
+        //         Node* node = new Node(meteor.getPosition(), &meteor);
+        //         quadtree.insert(node);  // Insert the meteor into the quadtree
+        //     }
+        // }
     }
 
     void run() {
@@ -207,8 +225,11 @@ public:
 
         // Check for collisions
         for (Meteor* meteor : nearbyMeteors) {
-            if (player.getGlobalBounds().intersects(meteor->getGlobalBounds())) {
+            if (player.checkCollision(meteor->getRadius(), meteor->getPosition())) {
                 isPaused = true;
+                //Draw a dummy rectangle of the size of collided object at its position to indicate collision
+                dummy.setSize(sf::Vector2f(meteor->getLocalBounds().width, meteor->getLocalBounds().height));
+                dummy.setPosition(meteor->getPosition());
             }
         }
 
@@ -216,6 +237,13 @@ public:
         camera.update(player.getPlayerPosition());
 
         updateChunks();
+
+        sf::Vector2f playerPosition = player.getPosition();
+        std::string playerPos = "(" + std::to_string(playerPosition.x) + ", " + std::to_string(playerPosition.y) + ")";
+        position.update_custom_value(playerPos);
+        std::string chunkPos = "(" + std::to_string(playerPosition.x / CHUNK_SIZE) + ", " + std::to_string(playerPosition.y / CHUNK_SIZE) + ")";
+        chunk.update_custom_value(chunkPos);
+
 
         if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
             score.increment();
@@ -249,6 +277,7 @@ public:
         for (const auto& projectile : projectiles) {
             window.draw(projectile);
         }
+        window.draw(dummy);
 
         drawUI();
         window.display();
@@ -284,6 +313,8 @@ public:
         uiLayer.draw(score);
         uiLayer.draw(stamina);
         uiLayer.draw(fpsText);
+        uiLayer.draw(position);
+        uiLayer.draw(chunk);
         uiLayer.display();
 
         sf::Sprite uiSprite(uiLayer.getTexture());

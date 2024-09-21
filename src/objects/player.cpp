@@ -9,6 +9,7 @@ class Player : public sf::Sprite {
 private:
     int speed = 5;
     int fuel = MAX_FUEL;
+    int radius;
 
     sf::RenderWindow& window;
     sf::Clock fuelClock;
@@ -31,6 +32,9 @@ public:
         setOrigin(textureSize.x / 2.0f, textureSize.y / 2.0f);
 
         setPosition(windowSize.x / 2.0f, windowSize.y / 2.0f);
+
+        sf::FloatRect bounds = getGlobalBounds();
+        radius = bounds.width / 2;
     }
 
     std::vector<Projectile> updatePlayer() {
@@ -148,5 +152,11 @@ public:
     // Get player position for camera
     sf::Vector2f getPlayerPosition() const {
         return getPosition();
+    }
+
+    bool checkCollision(float enemyRadius, sf::Vector2f position) {
+        sf::Vector2f playerPosition = getPosition();
+        float distance = sqrt(pow(playerPosition.x - position.x, 2) + pow(playerPosition.y - position.y, 2));
+        return distance < enemyRadius + radius;
     }
 };

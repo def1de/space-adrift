@@ -9,13 +9,15 @@ class Meteor;  // Forward declaration
 struct Node {
     sf::Vector2f pos;
     Meteor* meteor;  // Store a pointer to the meteor object
+    float radius;
 
-    Node(sf::Vector2f _pos, Meteor* _meteor)
-        : pos(_pos), meteor(_meteor) {}
+    Node(sf::Vector2f _pos, Meteor* _meteor, float _radius)
+        : pos(_pos), meteor(_meteor), radius(_radius) {}
 };
 
 class Quad {
-    sf::FloatRect boundary;
+    sf::FloatRect boundary; // Boundary of this quad
+
     // Contains details of a node (only one meteor at this level)
     Node* n;
 

@@ -3,19 +3,21 @@
 
 class Meteor : public sf::Sprite {
 private:
-    float size = 50.f;
     float speed;
+    float radius;
 public:
     explicit Meteor(sf::Texture& texture) {
         setTexture(texture);
         setScale(3.f, 3.f);
-        setRotationCenter();
         speed = rand()%3 + 1;
+
+        sf::FloatRect bounds = getLocalBounds();
+        radius = bounds.width / 2;
+        setOrigin(bounds.width / 2, bounds.height / 2);
     }
 
-    void setRotationCenter() {
-        auto bounds = getLocalBounds();
-        setOrigin(bounds.width / 2, bounds.height / 2);
+    float getRadius() const {
+        return radius;
     }
 
     void update() {
