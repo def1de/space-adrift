@@ -89,8 +89,8 @@ void Quad::expandBoundary(const sf::Vector2f& pos) {
         }
 
         // Double the size of the boundary in both directions
-        boundary.width *= 1.05;
-        boundary.height *= 1.05;
+        boundary.width += 5000.0f;
+        boundary.height += 5000.0f;
     }
 }
 

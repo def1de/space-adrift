@@ -155,6 +155,7 @@ public:
                     }
 
                     chunks[coords] = chunk;
+                    updateQuadtree(); // Update the quadtree after adding a new chunk
 #if DEBUG_CHUNKS
                     std::cout << "\n============";
                     std::cout << "\nChecking chunk at (" << i << ", " << j << ")";
@@ -171,14 +172,17 @@ public:
                         meteor.update();
                     }
                 }
-                quadtree.clear();  // Clear the quadtree before each update
-                for (auto& pair : chunks) {
-                    Chunk& chunk = pair.second;
-                    for (auto& meteor : chunk.meteors) {
-                        Node* node = new Node(meteor.getPosition(), &meteor, meteor.getRadius());
-                        quadtree.insert(node);  // Insert the meteor into the quadtree
-                    }
-                }
+            }
+        }
+    }
+
+    void updateQuadtree() {
+        quadtree.clear();  // Clear the quadtree before each update
+        for (auto& pair : chunks) {
+            Chunk& chunk = pair.second;
+            for (auto& meteor : chunk.meteors) {
+                Node* node = new Node(meteor.getPosition(), &meteor, meteor.getRadius());
+                quadtree.insert(node);  // Insert the meteor into the quadtree
             }
         }
     }
