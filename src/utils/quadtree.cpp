@@ -1,108 +1,138 @@
-#include <array>
-#include <vector>
-#include <memory>
-#include <SFML/Graphics.hpp>
+#include "quadtree.hpp"
+#include "../objects/meteor.cpp"
 
-class Quadtree {
-public:
-    int MAX_OBJECTS = 10;
-    int MAX_LEVELS = 5;
-    int level;
-    std::vector<sf::Sprite> objects;
-    sf::FloatRect bounds;
-    std::array<std::unique_ptr<Quadtree>, 4> nodes;
+// Constructor, Destructor, and Method Implementations
 
-    Quadtree(int pLevel, sf::FloatRect pBounds) : level(pLevel), bounds(pBounds) {
-        for (auto& node : nodes) {
-            node = nullptr;
-        }
+Quad::Quad(sf::FloatRect _boundary)
+        :boundary(_boundary), n(nullptr),
+        topLeftTree(nullptr), topRightTree(nullptr),
+        botLeftTree(nullptr), botRightTree(nullptr) {}
+
+Quad::~Quad() {
+    clear();
+}
+
+void Quad::insert(Node* node)
+{
+    if (!inBoundary(node->pos)) {
+        expandBoundary(node->pos);  // If the node is out of the boundary, expand the boundary
     }
 
-    void clear() {
-        objects.clear();
-        for (auto& node : nodes) {
-            if (node != nullptr) {
-                node->clear();
-                node.reset();
-            }
-        }
+    // If we're at a leaf node and this quad is empty, place the meteor here
+    if (!topLeftTree && !n) {
+        n = node;
+        return;
     }
 
-    void split() {
-        float subWidth = bounds.width / 2;
-        float subHeight = bounds.height / 2;
-        float x = bounds.left;
-        float y = bounds.top;
+    // Subdivide if necessary and pass the node to the appropriate child
+    if (!topLeftTree) {
+        float halfWidth = boundary.width / 2.0f;
+        float halfHeight = boundary.height / 2.0f;
 
-        nodes[0] = std::make_unique<Quadtree>(level+1, sf::FloatRect(x + subWidth, y, subWidth, subHeight));
-        nodes[1] = std::make_unique<Quadtree>(level+1, sf::FloatRect(x, y, subWidth, subHeight));
-        nodes[2] = std::make_unique<Quadtree>(level+1, sf::FloatRect(x, y + subHeight, subWidth, subHeight));
-        nodes[3] = std::make_unique<Quadtree>(level+1, sf::FloatRect(x + subWidth, y + subHeight, subWidth, subHeight));
+        topLeftTree = new Quad(sf::FloatRect(boundary.left, boundary.top, halfWidth, halfHeight));
+        topRightTree = new Quad(sf::FloatRect(boundary.left + halfWidth, boundary.top, halfWidth, halfHeight));
+        botLeftTree = new Quad(sf::FloatRect(boundary.left, boundary.top + halfHeight, halfWidth, halfHeight));
+        botRightTree = new Quad(sf::FloatRect(boundary.left + halfWidth, boundary.top + halfHeight, halfWidth, halfHeight));
     }
 
-    int getIndex(const sf::Sprite& sprite) const {
-        int index = -1;
-        double verticalMidpoint = bounds.left + (bounds.width / 2);
-        double horizontalMidpoint = bounds.top + (bounds.height / 2);
+    if (topLeftTree->inBoundary(node->pos)) topLeftTree->insert(node);
+    else if (topRightTree->inBoundary(node->pos)) topRightTree->insert(node);
+    else if (botLeftTree->inBoundary(node->pos)) botLeftTree->insert(node);
+    else if (botRightTree->inBoundary(node->pos)) botRightTree->insert(node);
+}
 
-        bool topQuadrant = (sprite.getPosition().y < horizontalMidpoint && sprite.getPosition().y + sprite.getGlobalBounds().height < horizontalMidpoint);
-        bool bottomQuadrant = (sprite.getPosition().y > horizontalMidpoint);
-
-        if (sprite.getPosition().x < verticalMidpoint && sprite.getPosition().x + sprite.getGlobalBounds().width < verticalMidpoint) {
-            if (topQuadrant) {
-                index = 1;
-            } else if (bottomQuadrant) {
-                index = 2;
-            }
-        } else if (sprite.getPosition().x > verticalMidpoint) {
-            if (topQuadrant) {
-                index = 0;
-            } else if (bottomQuadrant) {
-                index = 3;
-            }
-        }
-
-        return index;
+void Quad::retrieve(std::vector<Meteor*>& returnObjects, sf::FloatRect range)
+{
+    // If this quad does not intersect the range, skip
+    if (!inRange(range, boundary)) {
+        return;
     }
 
-    void insert(const sf::Sprite& sprite) {
-        if (nodes[0] != nullptr) {
-            int index = getIndex(sprite);
-
-            if (index != -1) {
-                nodes[index]->insert(sprite);
-                return;
-            }
-        }
-
-        objects.push_back(sprite);
-
-        if (objects.size() > MAX_OBJECTS && level < MAX_LEVELS) {
-            if (nodes[0] == nullptr) {
-                split();
-            }
-
-            int i = 0;
-            while (i < objects.size()) {
-                int index = getIndex(objects[i]);
-                if (index != -1) {
-                    nodes[index]->insert(objects[i]);
-                    objects.erase(objects.begin() + i);
-                } else {
-                    i++;
-                }
-            }
-        }
+    // If this quad contains a meteor, and it intersects the range, add it to the list
+    if (n && range.intersects(sf::FloatRect(n->pos.x, n->pos.y, n->meteor->getGlobalBounds().width, n->meteor->getGlobalBounds().height))) {
+        returnObjects.push_back(n->meteor);
     }
 
-    std::vector<sf::Sprite> retrieve(std::vector<sf::Sprite>& returnObjects, const sf::Sprite& sprite) {
-        int index = getIndex(sprite);
-        if (index != -1 && nodes[0] != nullptr) {
-            nodes[index]->retrieve(returnObjects, sprite);
+    // If this quad has children, check them as well
+    if (topLeftTree) topLeftTree->retrieve(returnObjects, range);
+    if (topRightTree) topRightTree->retrieve(returnObjects, range);
+    if (botLeftTree) botLeftTree->retrieve(returnObjects, range);
+    if (botRightTree) botRightTree->retrieve(returnObjects, range);
+}
+
+void Quad::expandBoundary(const sf::Vector2f& pos) {
+    // Calculate the center of the current boundary
+    float centerX = boundary.left + boundary.width / 2.0f;
+    float centerY = boundary.top + boundary.height / 2.0f;
+
+    // Calculate the new boundary that encompasses the point (pos)
+    while (!inBoundary(pos)) {
+        float halfWidth = boundary.width / 2.0f;
+        float halfHeight = boundary.height / 2.0f;
+
+        // If pos is left of the center, expand to the left
+        if (pos.x < boundary.left) {
+            boundary.left -= halfWidth;
+        }
+        // If pos is right of the center, expand to the right
+        if (pos.x > boundary.left + boundary.width) {
+            boundary.width += halfWidth;
         }
 
-        returnObjects.insert(returnObjects.end(), objects.begin(), objects.end());
+        // If pos is above the center, expand upwards
+        if (pos.y < boundary.top) {
+            boundary.top -= halfHeight;
+        }
+        // If pos is below the center, expand downwards
+        if (pos.y > boundary.top + boundary.height) {
+            boundary.height += halfHeight;
+        }
 
-        return returnObjects;
+        // Double the size of the boundary in both directions
+        boundary.width += 5000.0f;
+        boundary.height += 5000.0f;
     }
-};
+}
+
+bool Quad::inBoundary(const sf::Vector2f& pos)
+{
+    return boundary.contains(pos);
+}
+
+bool Quad::inRange(const sf::FloatRect& range, const sf::FloatRect& boundary)
+{
+    return range.intersects(boundary);
+}
+
+void Quad::clear() {
+    // Delete current node
+    if (n != nullptr) {
+        delete n;
+        n = nullptr;
+    }
+
+    // Recursively clear child quads
+    if (topLeftTree) {
+        topLeftTree->clear();
+        delete topLeftTree;
+        topLeftTree = nullptr;
+    }
+
+    if (topRightTree) {
+        topRightTree->clear();
+        delete topRightTree;
+        topRightTree = nullptr;
+    }
+
+    if (botLeftTree) {
+        botLeftTree->clear();
+        delete botLeftTree;
+        botLeftTree = nullptr;
+    }
+
+    if (botRightTree) {
+        botRightTree->clear();
+        delete botRightTree;
+        botRightTree = nullptr;
+    }
+}
