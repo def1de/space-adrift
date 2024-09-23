@@ -171,7 +171,6 @@ public:
                         meteor.update();
                     }
                 }
-
                 quadtree.clear();  // Clear the quadtree before each update
                 for (auto& pair : chunks) {
                     Chunk& chunk = pair.second;
@@ -182,15 +181,6 @@ public:
                 }
             }
         }
-
-        // quadtree.clear();  // Clear the quadtree before each update
-        // for (auto& pair : chunks) {
-        //     Chunk& chunk = pair.second;
-        //     for (auto& meteor : chunk.meteors) {
-        //         Node* node = new Node(meteor.getPosition(), &meteor);
-        //         quadtree.insert(node);  // Insert the meteor into the quadtree
-        //     }
-        // }
     }
 
     void run() {
@@ -216,6 +206,7 @@ public:
 
         std::vector<Meteor*> nearbyMeteors;
         sf::FloatRect playerRange = player.getGlobalBounds();  // Use player's bounding box
+
         quadtree.retrieve(nearbyMeteors, playerRange);
 
         // Check for collisions

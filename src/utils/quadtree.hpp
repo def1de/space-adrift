@@ -40,6 +40,8 @@ public:
     void retrieve(std::vector<Meteor*>& returnObjects, sf::FloatRect range);
     bool inBoundary(const sf::Vector2f& point);
     bool inRange(const sf::FloatRect& range1, const sf::FloatRect& range2);
+
+    void expandBoundary(const sf::Vector2f& pos);
 };
 
 #endif // QUADTREE_HPP

@@ -18,7 +18,6 @@ add_executable(main src/main.cpp
         src/objects/fuel.cpp
         src/objects/label.cpp
         src/objects/meteor.cpp
-        src/utils/quadtree_bak.hpp
         src/scenes/space.cpp
         src/utils/AnimatedSprite.cpp
         src/objects/projectile.cpp

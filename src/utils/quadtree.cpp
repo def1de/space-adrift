@@ -15,7 +15,7 @@ Quad::~Quad() {
 void Quad::insert(Node* node)
 {
     if (!inBoundary(node->pos)) {
-        return;  // If the node is out of the boundary, do nothing
+        expandBoundary(node->pos);  // If the node is out of the boundary, expand the boundary
     }
 
     // If we're at a leaf node and this quad is empty, place the meteor here
@@ -58,6 +58,40 @@ void Quad::retrieve(std::vector<Meteor*>& returnObjects, sf::FloatRect range)
     if (topRightTree) topRightTree->retrieve(returnObjects, range);
     if (botLeftTree) botLeftTree->retrieve(returnObjects, range);
     if (botRightTree) botRightTree->retrieve(returnObjects, range);
+}
+
+void Quad::expandBoundary(const sf::Vector2f& pos) {
+    // Calculate the center of the current boundary
+    float centerX = boundary.left + boundary.width / 2.0f;
+    float centerY = boundary.top + boundary.height / 2.0f;
+
+    // Calculate the new boundary that encompasses the point (pos)
+    while (!inBoundary(pos)) {
+        float halfWidth = boundary.width / 2.0f;
+        float halfHeight = boundary.height / 2.0f;
+
+        // If pos is left of the center, expand to the left
+        if (pos.x < boundary.left) {
+            boundary.left -= halfWidth;
+        }
+        // If pos is right of the center, expand to the right
+        if (pos.x > boundary.left + boundary.width) {
+            boundary.width += halfWidth;
+        }
+
+        // If pos is above the center, expand upwards
+        if (pos.y < boundary.top) {
+            boundary.top -= halfHeight;
+        }
+        // If pos is below the center, expand downwards
+        if (pos.y > boundary.top + boundary.height) {
+            boundary.height += halfHeight;
+        }
+
+        // Double the size of the boundary in both directions
+        boundary.width *= 1.05;
+        boundary.height *= 1.05;
+    }
 }
 
 bool Quad::inBoundary(const sf::Vector2f& pos)
