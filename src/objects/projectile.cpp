@@ -1,27 +1,17 @@
 #include <cmath>
-#include "../utils/AnimatedSprite.cpp"
+#include "projectile.hpp"
 
-class Projectile : public AnimatedSprite {
-private:
-    int speed = -10;
-    sf::Vector2f direction;
+projectile::projectile(const sf::Vector2f position, const float angle_deg, const std::string& texture_path, const int frame_width, const int frame_height, const float frame_duration) : animated_sprite(texture_path, frame_width, frame_height, frame_duration) {
+    setScale(3.f, 3.f);
+    setPosition(position);
+    setRotation(angle_deg);
 
-public:
-    Projectile(sf::Vector2f position, float angle_deg, const std::string& texturePath, int frameWidth, int frameHeight, float frameDuration) : AnimatedSprite(texturePath, frameWidth, frameHeight, frameDuration) {
-        setScale(3.f, 3.f);
-        setPosition(position);
-        setRotation(angle_deg);
+    const float angle_rad = angle_deg * M_PI / 180.0f + M_PI / 2.0f;
 
-        float angle_rad = angle_deg * M_PI / 180.0f + M_PI / 2.0f;
+    direction_ = sf::Vector2f(speed_*std::cos(angle_rad), speed_*std::sin(angle_rad));
+}
 
-        direction = sf::Vector2f(speed*cos(angle_rad), speed*sin(angle_rad));
-
-        std::cout << "Projectile created at " << position.x << ", " << position.y;
-        std::cout << " with angle " << angle_deg << std::endl;
-    }
-
-    void update() {
-        move(direction);
-        AnimatedSprite::update();
-    }
-};
+void projectile::update() {
+    move(direction_);
+    animated_sprite::update();
+}

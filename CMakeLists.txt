@@ -14,14 +14,23 @@ FetchContent_MakeAvailable(SFML)
 add_definitions(-DASSETS_DIR="${ASSETS_DIR}")
 
 add_executable(main src/main.cpp
-        src/objects/player.cpp
-        src/objects/fuel.cpp
-        src/objects/label.cpp
-        src/objects/meteor.cpp
         src/scenes/space.cpp
-        src/utils/AnimatedSprite.cpp
-        src/objects/projectile.cpp
+        src/scenes/space.hpp
+        src/objects/player.cpp
+        src/objects/player.hpp
+        src/objects/meteor.cpp
+        src/objects/meteor.hpp
+        src/objects/label.cpp
+        src/objects/label.hpp
         src/utils/quadtree.cpp
+        src/utils/quadtree.hpp
+        src/utils/AnimatedSprite.cpp
+        src/utils/AnimatedSprite.hpp
+        src/objects/projectile.cpp
+        src/objects/projectile.hpp
+        src/utils/Camera.cpp
+        src/utils/Camera.hpp
+        src/utils/random.hpp
 )
 target_link_libraries(main PRIVATE sfml-graphics sfml-audio)
 target_compile_features(main PRIVATE cxx_std_17)

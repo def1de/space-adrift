@@ -3,45 +3,45 @@
 
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "../objects/meteor.hpp"
 
-class Meteor;  // Forward declaration
-
-struct Node {
+struct node {
     sf::Vector2f pos;
-    Meteor* meteor;  // Store a pointer to the meteor object
+    meteor* meteor_ptr;  // Store a pointer to the meteor object
     float radius;
 
-    Node(sf::Vector2f _pos, Meteor* _meteor, float _radius)
-        : pos(_pos), meteor(_meteor), radius(_radius) {}
+    node(const sf::Vector2f pos, meteor* meteor, const float radius)
+        : pos(pos), meteor_ptr(meteor), radius(radius) {}
 };
 
-class Quad {
-    sf::FloatRect boundary; // Boundary of this quad
+class quad {
+    sf::FloatRect boundary_; // Boundary of this quad
 
     // Contains details of a node (only one meteor at this level)
-    Node* n;
+    const node* n_;
 
-    sf::Vector2f topLeft;
-    sf::Vector2f botRight;
+    sf::Vector2f top_left_;
+    sf::Vector2f bot_right_;
 
-    std::vector<Meteor*> objects;  // Store objects (meteors)
-    Quad* topLeftTree;
-    Quad* topRightTree;
-    Quad* botLeftTree;
-    Quad* botRightTree;
+    std::vector<meteor*> objects_;  // Store objects (meteors)
+    quad* top_left_tree_;
+    quad* top_right_tree_;
+    quad* bot_left_tree_;
+    quad* bot_right_tree_;
 
 public:
-    Quad(sf::FloatRect _boundary);
+    explicit quad(sf::FloatRect boundary);
 
-    ~Quad();
+    ~quad();
 
-    void insert(Node* node);
+    void insert(const node* node);
     void clear();
-    void retrieve(std::vector<Meteor*>& returnObjects, sf::FloatRect range);
-    bool inBoundary(const sf::Vector2f& point);
-    bool inRange(const sf::FloatRect& range1, const sf::FloatRect& range2);
+    void retrieve(std::vector<meteor*>& return_objects, sf::FloatRect range) const;
+    [[nodiscard]] bool in_boundary(const sf::Vector2f& point) const;
 
-    void expandBoundary(const sf::Vector2f& pos);
+    static bool in_range(const sf::FloatRect& range, const sf::FloatRect& range2);
+
+    void expand_boundary(const sf::Vector2f& pos);
 };
 
-#endif // QUADTREE_HPP
+#endif

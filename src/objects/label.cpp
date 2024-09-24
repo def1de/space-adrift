@@ -1,38 +1,28 @@
-#include <utility>
+#include "label.hpp"
 
-#include "SFML/Graphics.hpp"
+label::label(const sf::Vector2f position, std::string plabel, const unsigned int pvalue) : label_(std::move(plabel)), value_(pvalue){
+    font_.loadFromFile("/usr/share/fonts/TTF/JetBrainsMono-SemiBold.ttf");
+    setFont(font_);
+    setCharacterSize(24); // in pixels
+    setFillColor(sf::Color::White);
+    setPosition(position);
+    setOutlineThickness(2.f);
+    setOutlineColor(sf::Color::Black);
+    setString(label_);
+}
 
-class Label : public sf::Text {
-private:
-    sf::Font font;
-    std::string label;
-    unsigned int value = 0;
+void label::update_value() {
+    setString(label_ + std::to_string(value_));
+}
 
-public:
-    explicit Label(sf::Vector2f position, std::string plabel, unsigned int pvalue) : label(std::move(plabel)), value(pvalue){
-        font.loadFromFile("/usr/share/fonts/TTF/JetBrainsMono-SemiBold.ttf");
-        setFont(font);
-        setCharacterSize(24); // in pixels
-        setFillColor(sf::Color::White);
-        setPosition(position);
-        setOutlineThickness(2.f);
-        setOutlineColor(sf::Color::Black);
-        setString(label);
-    }
+void label::update_custom_value(const std::string& custom) {
+    setString(label_ + custom);
+}
 
-    void update_value() {
-        setString(label + std::to_string(value));
-    }
+void label::increment() {
+    value_++;
+}
 
-    void update_custom_value(const std::string& custom) {
-        setString(label + custom);
-    }
-
-    void increment() {
-        value++;
-    }
-
-    void decrement() {
-        value--;
-    }
-};
+void label::decrement() {
+    value_--;
+}

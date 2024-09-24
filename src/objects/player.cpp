@@ -1,166 +1,135 @@
-#include <SFML/Graphics.hpp>
+#include "player.hpp"
+
 #include <cmath>
-#include <vector>
-#include "../objects/projectile.cpp"
 
-#define MAX_FUEL 10
+player::player(sf::RenderWindow& pwindow) : window_(pwindow) {
+    texture_.loadFromFile(ASSETS_DIR "/player.png");
+    setTexture(texture_);
+    setScale(3.f, 3.f);
 
-class Player : public sf::Sprite {
-private:
-    int speed = 5;
-    int fuel = MAX_FUEL;
-    int radius;
+    const auto texture_size = texture_.getSize();
+    const auto window_size = window_.getSize();
 
-    sf::RenderWindow& window;
-    sf::Clock fuelClock;
-    sf::Clock rotationClock;
-    sf::Texture texture;
+    setOrigin(texture_size.x / 2.0f, texture_size.y / 2.0f);
 
+    setPosition(window_size.x / 2.0f, window_size.y / 2.0f);
 
-    bool wasMousePressed = false;
-    std::vector<Projectile> projectiles;
+    const sf::FloatRect bounds = getLocalBounds();
+    radius_ = bounds.width / 2;
+}
 
-public:
-    explicit Player(sf::RenderWindow& pwindow) : window(pwindow) {
-        texture.loadFromFile(ASSETS_DIR "/player.png");
-        setTexture(texture);
-        setScale(3.f, 3.f);
+std::vector<projectile> player::update_player() {
+    move();
 
-        auto textureSize = texture.getSize();
-        auto windowSize = window.getSize();
-
-        setOrigin(textureSize.x / 2.0f, textureSize.y / 2.0f);
-
-        setPosition(windowSize.x / 2.0f, windowSize.y / 2.0f);
-
-        sf::FloatRect bounds = getLocalBounds();
-        radius = bounds.width / 2;
+    for (auto& projectile : projectiles_) {
+        projectile.update();
     }
 
-    std::vector<Projectile> updatePlayer() {
-        move();
-
-        for (auto& projectile : projectiles) {
-            projectile.update();
+    // Shoot if left mouse button is clicked
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        if(!was_mouse_pressed_) {
+            projectiles_.emplace_back(getPosition(), getRotation(), ASSETS_DIR "/player_projectile.png", 4, 16, 0.1f);
+            was_mouse_pressed_ = true;
         }
-
-        // Shoot if left mouse button is clicked
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            if(!wasMousePressed) {
-                projectiles.emplace_back(getPosition(), getRotation(), ASSETS_DIR "/player_projectile.png", 4, 16, 0.1f);
-                wasMousePressed = true;
-            }
-        } else {
-            wasMousePressed = false;
-        }
-
-        if(fuelClock.getElapsedTime().asSeconds() >= 1.0) {
-            if(fuel > 0) {
-                // fuel--;
-            }
-            fuelClock.restart();
-        }
-        return projectiles;
+    } else {
+        was_mouse_pressed_ = false;
     }
 
-    void move() {
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-        sf::Vector2f worldPosition = window.mapPixelToCoords(mousePosition);
-        float playerRotation = getRotation() * M_PI / 180.0f - M_PI / 2.0f;
+    return projectiles_;
+}
 
-        // Calculate current movement direction
-        sf::Vector2f movement(cos(playerRotation), sin(playerRotation));
+void player::move() {
+    const sf::Vector2i mouse_position = sf::Mouse::getPosition(window_);
+    const sf::Vector2f world_position = window_.mapPixelToCoords(mouse_position);
+    const float player_rotation = getRotation() * M_PI / 180.0f - M_PI / 2.0f;
 
-        // Normalize the movement vector
-        float length = sqrt(movement.x * movement.x + movement.y * movement.y);
-        if (length != 0) {
-            movement.x /= length;
-            movement.y /= length;
-        }
+    // Calculate current movement direction
+    sf::Vector2f movement(std::cos(player_rotation), std::sin(player_rotation));
 
-        // Calculate the target direction towards the cursor
-        sf::Vector2f playerPosition = getPosition();
-        sf::Vector2f targetDirection = worldPosition - playerPosition;
-        length = sqrt(targetDirection.x * targetDirection.x + targetDirection.y * targetDirection.y);
-        if (length != 0) {
-            targetDirection.x /= length;
-            targetDirection.y /= length;
-        }
-
-        // Apply a force to gradually change direction
-        float turnRate = 0.1f; // Adjust this value to control the turning speed
-        movement.x = (1 - turnRate) * movement.x + turnRate * targetDirection.x;
-        movement.y = (1 - turnRate) * movement.y + turnRate * targetDirection.y;
-
-        // Normalize the movement vector again
-        length = sqrt(movement.x * movement.x + movement.y * movement.y);
-        if (length != 0) {
-            movement.x /= length;
-            movement.y /= length;
-        }
-
-        // Scale by speed
-        movement.x *= speed;
-        movement.y *= speed;
-
-        // Move the sprite
-        Sprite::move(movement);
-
-        // Smoothly rotate the sprite
-        float deltaTime = rotationClock.restart().asSeconds();
-        rotatate(deltaTime, worldPosition);
+    // Normalize the movement vector
+    float length = sqrt(movement.x * movement.x + movement.y * movement.y);
+    if (length != 0) {
+        movement.x /= length;
+        movement.y /= length;
     }
 
-    void rotatate(float deltaTime, sf::Vector2f worldPosition) {
-        sf::Vector2f playerPosition = getPosition();
-        float angle_rad = atan2(worldPosition.y - playerPosition.y, worldPosition.x - playerPosition.x) + M_PI / 2;
-        float angle_deg = angle_rad * 180 / M_PI;
-
-        smoothRotate(angle_deg, deltaTime);
+    // Calculate the target direction towards the cursor
+    const sf::Vector2f player_position = getPosition();
+    sf::Vector2f target_direction = world_position - player_position;
+    length = sqrt(target_direction.x * target_direction.x + target_direction.y * target_direction.y);
+    if (length != 0) {
+        target_direction.x /= length;
+        target_direction.y /= length;
     }
 
-    void smoothRotate(float targetAngle, float deltaTime) {
-        float currentAngle = getRotation();
-        float angleDifference = targetAngle - currentAngle;
+    // Apply a force to gradually change direction
+    constexpr float turn_rate = 0.1f; // Adjust this value to control the turning speed
+    movement.x = (1 - turn_rate) * movement.x + turn_rate * target_direction.x;
+    movement.y = (1 - turn_rate) * movement.y + turn_rate * target_direction.y;
 
-        // Normalize the angle difference to the range [-180, 180]
-        while (angleDifference > 180) angleDifference -= 360;
-        while (angleDifference < -180) angleDifference += 360;
-
-        // Define the rotation speed (degrees per second)
-        float rotationSpeed = 120.0f;
-
-        // Calculate the amount to rotate this frame
-        float rotationAmount = rotationSpeed * deltaTime;
-
-        // Clamp the rotation amount to the angle difference
-        if (std::abs(angleDifference) < rotationAmount) {
-            rotationAmount = angleDifference;
-        } else {
-            rotationAmount *= (angleDifference > 0) ? 1 : -1;
-        }
-
-        // Apply the rotation
-        setRotation(currentAngle + rotationAmount);
+    // Normalize the movement vector again
+    length = sqrt(movement.x * movement.x + movement.y * movement.y);
+    if (length != 0) {
+        movement.x /= length;
+        movement.y /= length;
     }
 
-    // Get player fuel
-    int getFuel() const {
-        return fuel;
+    // Scale by speed
+    movement.x *= speed_;
+    movement.y *= speed_;
+
+    // Move the sprite
+    Sprite::move(movement);
+
+    // Smoothly rotate the sprite
+    const float delta_time = rotation_clock_.restart().asSeconds();
+    rotatate(delta_time, world_position);
+}
+
+void player::rotatate(const float delta_time, const sf::Vector2f world_position) {
+    const sf::Vector2f player_position = getPosition();
+    const float angle_rad = atan2(world_position.y - player_position.y, world_position.x - player_position.x) + M_PI / 2;
+    const float angle_deg = angle_rad * 180 / M_PI;
+
+    smooth_rotate(angle_deg, delta_time);
+}
+
+void player::smooth_rotate(const float target_angle, const float delta_time) {
+    const float current_angle = getRotation();
+    float angle_difference = target_angle - current_angle;
+
+    // Normalize the angle difference to the range [-180, 180]
+    while (angle_difference > 180) angle_difference -= 360;
+    while (angle_difference < -180) angle_difference += 360;
+
+    // Define the rotation speed (degrees per second)
+    constexpr float rotation_speed = 120.0f;
+
+    // Calculate the amount to rotate this frame
+    float rotation_amount = rotation_speed * delta_time;
+
+    // Clamp the rotation amount to the angle difference
+    if (std::abs(angle_difference) < rotation_amount) {
+        rotation_amount = angle_difference;
+    } else {
+        rotation_amount *= (angle_difference > 0) ? 1 : -1;
     }
 
-    // Get player position for camera
-    sf::Vector2f getPlayerPosition() const {
-        return getPosition();
-    }
+    // Apply the rotation
+    setRotation(current_angle + rotation_amount);
+}
 
-    bool checkCollision(float enemyRadius, sf::Vector2f position) {
-        sf::Vector2f playerPosition = getPosition();
-        float distance = sqrt(pow(playerPosition.x - position.x, 2) + pow(playerPosition.y - position.y, 2));
-        return distance < enemyRadius + radius;
-    }
+// Get player position for camera
+sf::Vector2f player::get_player_position() const {
+    return getPosition();
+}
 
-    float getRadius() const {
-        return radius;
-    }
-};
+bool player::check_collision(const float enemy_radius, const sf::Vector2f position) const {
+    const sf::Vector2f player_position = getPosition();
+    const float distance = sqrt(pow(player_position.x - position.x, 2) + pow(player_position.y - position.y, 2));
+    return distance < enemy_radius + radius_;
+}
+
+float player::get_radius() const {
+    return radius_;
+}

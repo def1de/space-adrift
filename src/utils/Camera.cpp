@@ -1,21 +1,14 @@
-#include <SFML/Graphics.hpp>
+#include "Camera.hpp"
 
-class Camera {
-private:
-    sf::View view;
-    sf::RenderWindow& window;
+camera::camera(sf::RenderWindow& pwindow) : window_(pwindow) {
+    view_ = window_.getDefaultView();
+}
 
-public:
-    explicit Camera(sf::RenderWindow& pwindow) : window(pwindow) {
-        view = window.getDefaultView();
-    }
+void camera::update(const sf::Vector2f& player_position) {
+    view_.setCenter(player_position);
+    window_.setView(view_);
+}
 
-    void update(const sf::Vector2f& playerPosition) {
-        view.setCenter(playerPosition);
-        window.setView(view);
-    }
-
-    sf::View getView() const {
-        return view;
-    }
-};
+sf::View camera::get_view() const {
+    return view_;
+}

@@ -1,51 +1,33 @@
-#include <SFML/Graphics.hpp>
-#include <vector>
-#include <iostream>
+#include "AnimatedSprite.hpp"
 
-class AnimatedSprite : public sf::Sprite {
-private:
-    std::vector<sf::IntRect> frames;
-    size_t currentFrame;
-    sf::Clock animationClock;
-    float frameDuration; // Duration of each frame in seconds
-    sf::Texture texture; // Store texture as a member variable
+animated_sprite::animated_sprite(const std::string& texture_path, int frame_width, int frame_height, const float frame_duration)
+    : current_frame_(0), frame_duration_(frame_duration) {
+    if (!texture_.loadFromFile(texture_path)) {
+        return;
+    }
+    setTexture(texture_);
 
-public:
-    AnimatedSprite(const std::string& texturePath, int frameWidth, int frameHeight, float frameDuration)
-        : currentFrame(0), frameDuration(frameDuration) {
-        if (!texture.loadFromFile(texturePath)) {
-            std::cerr << "Error loading texture from " << texturePath << std::endl;
-            return;
+    // Calculate the number of frames in the texture
+    const sf::Vector2u texture_size = texture_.getSize();
+    const int num_frames_x = texture_size.x / frame_width;
+    const int num_frames_y = texture_size.y / frame_height;
+
+    // Define the frames
+    for (int y = 0; y < num_frames_y; ++y) {
+        for (int x = 0; x < num_frames_x; ++x) {
+            frames_.emplace_back(x * frame_width, y * frame_height, frame_width, frame_height);
         }
-        setTexture(texture);
-
-        // Calculate the number of frames in the texture
-        sf::Vector2u textureSize = texture.getSize();
-        int numFramesX = textureSize.x / frameWidth;
-        int numFramesY = textureSize.y / frameHeight;
-
-        // Define the frames
-        for (int y = 0; y < numFramesY; ++y) {
-            for (int x = 0; x < numFramesX; ++x) {
-                frames.emplace_back(x * frameWidth, y * frameHeight, frameWidth, frameHeight);
-            }
-        }
-
-        // Set the initial frame
-        setTextureRect(frames[currentFrame]);
-
-        // Debug information
-        std::cout << "Texture loaded: " << texturePath << std::endl;
-        std::cout << "Texture size: " << textureSize.x << "x" << textureSize.y << std::endl;
-        std::cout << "Number of frames: " << frames.size() << std::endl;
     }
 
-    void update() {
-        if (animationClock.getElapsedTime().asSeconds() >= frameDuration) {
-            // Move to the next frame
-            currentFrame = (currentFrame + 1) % frames.size();
-            setTextureRect(frames[currentFrame]);
-            animationClock.restart();
-        }
+    // Set the initial frame
+    setTextureRect(frames_[current_frame_]);
+}
+
+void animated_sprite::update() {
+    if (animation_clock_.getElapsedTime().asSeconds() >= frame_duration_) {
+        // Move to the next frame
+        current_frame_ = (current_frame_ + 1) % frames_.size();
+        setTextureRect(frames_[current_frame_]);
+        animation_clock_.restart();
     }
-};
+}

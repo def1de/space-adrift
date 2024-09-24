@@ -1,27 +1,20 @@
-#include <SFML/Graphics.hpp>
-#include <iostream>
+#include "meteor.hpp"
+#include "../utils/random.hpp"
 
-class Meteor : public sf::Sprite {
-private:
-    float speed;
-    float radius;
-public:
-    explicit Meteor(sf::Texture& texture) {
-        setTexture(texture);
-        setScale(3.f, 3.f);
-        speed = rand()%3 + 1;
+meteor::meteor(const sf::Texture& texture) {
+    setTexture(texture);
+    setScale(3.f, 3.f);
+    speed_ = random(1, 3);
 
-        sf::FloatRect bounds = getLocalBounds();
-        radius = bounds.width / 2;
-        setOrigin(bounds.width / 2, bounds.height / 2);
-    }
+    const sf::FloatRect bounds = getLocalBounds();
+    radius_ = bounds.width / 2;
+    setOrigin(bounds.width / 2, bounds.height / 2);
+}
 
-    float getRadius() const {
-        return radius;
-    }
+float meteor::get_radius() const {
+    return radius_;
+}
 
-    void update() {
-        // setRotation(getRotation()+.05f*speed);
-        return;
-    }
-};
+void meteor::update() {
+    setRotation(getRotation()+.05f*speed_);
+}

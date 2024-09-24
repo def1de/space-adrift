@@ -1,8 +1,8 @@
-#include "scenes/space.cpp"
+#include "scenes/space.hpp"
 
 int main()
 {
-    Space space;
+    space space;
     space.run();
     return 1;
 }

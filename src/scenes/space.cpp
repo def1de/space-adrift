@@ -1,329 +1,213 @@
-#include <iostream>
-#include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
-#include "../objects/player.cpp"
-#include "../objects/fuel.cpp"
-#include "../objects/label.cpp"
-#include "../utils/quadtree.hpp"
-#include "../objects/meteor.cpp"
-#include "../utils/Camera.cpp"
-// #include "../utils/AnimatedSprite.cpp"
-#include <unordered_set>
-#include <unordered_map>
+#include "space.hpp"
+#include "../utils/random.hpp"
 
-#define DEBUG_CHUNKS 0
-#define CHUNK_SIZE 1024
+space::space() :
+window_(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen),
+quadtree_(sf::FloatRect(0, 0, 5000, 5000)),
+player_(window_),
+camera_(window_),
+score_(sf::Vector2f(10.f, 10.f), "Score: ", 0),
+fps_text_(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
+position_(sf::Vector2f(10.f, 82.f), "Position: ", 0),
+chunk_(sf::Vector2f(10.f, 106.f), "Chunk: ", 0)
+{
+    window_.setFramerateLimit(165);
 
-class Space {
-
-private:
-    struct Chunk {
-        sf::Vector2f position;  // Absolute position of the chunk
-        std::vector<Meteor> meteors;  // Meteors in this chunk
-    };
-
-    struct ChunkCoordinates {
-        int x;
-        int y;
-
-        bool operator==(const ChunkCoordinates& other) const {
-            return x == other.x && y == other.y;
-        }
-    };
-
-    // Custom hash function for ChunkCoordinates
-    struct ChunkCoordinatesHash {
-        std::size_t operator()(const ChunkCoordinates& key) const {
-            return std::hash<int>()(key.x) ^ (std::hash<int>()(key.y) << 1);
-        }
-    };
-
-    // Container for chunks
-    std::unordered_map<ChunkCoordinates, Chunk, ChunkCoordinatesHash> chunks;
-
-    sf::RenderWindow window;
-    sf::Texture backgroundTexture;
-    sf::Sprite background;
-    std::vector<sf::Sprite> backgrounds;
-    sf::RenderTexture uiLayer;
-    sf::Texture meteorTexture;
-    sf::Texture fuelTexture;
-    Player player;
-    Camera camera;
-
-    Label score;
-    Label stamina;
-    Label fpsText;
-    Label position;
-    Label chunk;
-
-    sf::Clock scoreClock;
-    sf::Clock waveClock;
-    int wave = 0;
-
-    sf::Clock fpsClock;
-    unsigned int frames = 0;
-    float lastTime = 0;
-
-    std::vector<Fuel> fuels;
-    std::vector<Meteor> meteors;
-
-    bool isPaused = false;
-
-    sf::Music backgroundMusic;
-    std::vector<Projectile> projectiles;
-
-    Quad quadtree;
-
-public:
-    Space() :
-    window(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen),
-    player(window),
-    camera(window),
-    score(sf::Vector2f(10.f, 10.f), "Score: ", 0),
-    stamina(sf::Vector2f(10.f, 34.f), "Fuel: ", 0),
-    fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
-    position(sf::Vector2f(10.f, 82.f), "Position: ", 0),
-    chunk(sf::Vector2f(10.f, 106.f), "Chunk: ", 0),
-    quadtree(sf::FloatRect(0, 0, 5000, 5000))
-    {
-        window.setFramerateLimit(165);
-
-        if(!backgroundTexture.loadFromFile(ASSETS_DIR "/background.png")) {
-            std::cout << "Error loading background texture" << std::endl;
-        }
-
-        uiLayer.create(window.getSize().x, window.getSize().y);
-
-        if (!meteorTexture.loadFromFile(ASSETS_DIR "/meteor.png")) {
-            std::cerr << "Failed to load meteor texture." << std::endl;
-        } else {
-            std::cout << "Meteor texture loaded successfully." << std::endl;
-        }
-
-        // the mighty meteor doesn't need to be here anymore but he still is because he is the mighty meteor 3:<
-        // meteors.emplace_back(meteorTexture);
-
-        if (!fuelTexture.loadFromFile(ASSETS_DIR "/fuel.png")) {
-            std::cerr << "Failed to load fuel texture." << std::endl;
-        } else {
-            std::cout << "Fuel texture loaded successfully." << std::endl;
-        }
-
-        if(!backgroundMusic.openFromFile(ASSETS_DIR "/soundtrack.ogg")) {
-            std::cerr << "Failed to load background music." << std::endl;
-        } else {
-            backgroundMusic.setLoop(true);
-            backgroundMusic.play();
-        }
+    if(!background_texture_.loadFromFile(ASSETS_DIR "/background.png")) {
+        std::cout << "Error loading background texture" << std::endl;
     }
 
-    void updateChunks() {
+    ui_layer_.create(window_.getSize().x, window_.getSize().y);
 
-        sf::Vector2f playerPosition = player.getPosition();
-        sf::Vector2u imageSize = backgroundTexture.getSize();
+    if (!meteor_texture_.loadFromFile(ASSETS_DIR "/meteor.png")) {
+        std::cerr << "Failed to load meteor texture." << std::endl;
+    }
 
-        // Calculate the number of background tiles needed to cover the viewport
-        int tilesX = static_cast<int>(std::ceil(window.getSize().x / static_cast<float>(imageSize.x))) + 2;
-        int tilesY = static_cast<int>(std::ceil(window.getSize().y / static_cast<float>(imageSize.y))) + 2;
+    if(!background_music_.openFromFile(ASSETS_DIR "/soundtrack.ogg")) {
+        std::cerr << "Failed to load background music." << std::endl;
+    } else {
+        background_music_.setLoop(true);
+        background_music_.play();
+    }
+}
 
-        // Calculate the starting position of the chunks based on the universe center
-        int startX = std::floor(playerPosition.x / imageSize.x);
-        int startY = std::floor(playerPosition.y / imageSize.y);
+void space::update_chunks() {
 
-        // Generate new chunks
-        for (int i = -tilesX; i <= tilesX; ++i) {
-            for (int j = -tilesY; j <= tilesY; ++j) {
-                int coordX = startX + i;
-                int coordY = startY + j;
+    const sf::Vector2f player_position = player_.getPosition();
+    const sf::Vector2u image_size = background_texture_.getSize();
 
-                ChunkCoordinates coords = {coordX, coordY};
+    // Calculate the number of background tiles needed to cover the viewport
+    const int tiles_x = static_cast<int>(std::ceil(window_.getSize().x / static_cast<float>(image_size.x))) + 2;
+    const int tiles_y = static_cast<int>(std::ceil(window_.getSize().y / static_cast<float>(image_size.y))) + 2;
 
-                // Check if the chunk already exists
-                if (chunks.find(coords) == chunks.end()) {
-                    Chunk chunk;
-                    chunk.position = sf::Vector2f((startX + i) * CHUNK_SIZE, (startY + j) * CHUNK_SIZE);
+    // Calculate the starting position of the chunks based on the universe center
+    const int start_x = std::floor(player_position.x / image_size.x);
+    const int start_y = std::floor(player_position.y / image_size.y);
 
-                    // Randomly spawn meteors
-                    int numMeteors = rand() % 3;
-                    for (int m = 0; m < numMeteors; ++m) {
-                        Meteor meteor(meteorTexture);
-                        float meteorX = chunk.position.x + rand() % static_cast<int>(CHUNK_SIZE - meteor.getGlobalBounds().width*2)+meteor.getGlobalBounds().width*2;
-                        float meteorY = chunk.position.y + rand() % static_cast<int>(CHUNK_SIZE - meteor.getGlobalBounds().height*2)+meteor.getGlobalBounds().height*2;
-                        meteor.setPosition(meteorX, meteorY);
-                        chunk.meteors.push_back(meteor);
-                    }
+    // Generate new chunks
+    for (int i = -tiles_x; i <= tiles_x; ++i) {
+        for (int j = -tiles_y; j <= tiles_y; ++j) {
+            const int coord_x = start_x + i;
+            const int coord_y = start_y + j;
 
-                    chunks[coords] = chunk;
-                    updateQuadtree(); // Update the quadtree after adding a new chunk
-#if DEBUG_CHUNKS
-                    std::cout << "\n============";
-                    std::cout << "\nChecking chunk at (" << i << ", " << j << ")";
-                    std::cout << "\nPlayers Coordinates: (" << playerPosition.x << ", " << playerPosition.y << ")";
-                    std::cout << "\nStart X: " << startX << " Start Y: " << startY;
-                    std::cout << "\nAdded chunk at (" << coords.x << ", " << coords.y << ")";
-                    std::cout << "\nChunk coordinates: (" << chunk.position.x << ", " << chunk.position.y << ")";
-                    std::cout << "\n============" << std::endl;
-#endif
-                } else {
-                    // iterate through the meteors in the chunk
-                    Chunk& chunk = chunks[coords];
-                    for (auto& meteor : chunk.meteors) {
-                        meteor.update();
-                    }
+            // Check if the chunk already exists
+            if (chunk_coordinates coords = {coord_x, coord_y}; chunks_.find(coords) == chunks_.end()) {
+                chunk chunk;
+                chunk.position = sf::Vector2f((start_x + i) * CHUNK_SIZE, (start_y + j) * CHUNK_SIZE);
+
+                // Randomly spawn meteors
+                const int num_meteors = random(1, 3);
+                for (int m = 0; m < num_meteors; ++m) {
+                    meteor meteor(meteor_texture_);
+                    const float meteor_x = chunk.position.x + random(0, CHUNK_SIZE - static_cast<int>(meteor.getGlobalBounds().width));
+                    const float meteor_y = chunk.position.y + random(0, CHUNK_SIZE - static_cast<int>(meteor.getGlobalBounds().height));
+                    meteor.setPosition(meteor_x, meteor_y);
+                    chunk.meteors.push_back(meteor);
+                }
+
+                chunks_[coords] = chunk;
+                update_quadtree(); // Update the quadtree after adding a new chunk
+            } else {
+                // iterate through the meteors in the chunk
+                auto&[position, meteors] = chunks_[coords];
+                for (auto& meteor : meteors) {
+                    meteor.update();
                 }
             }
         }
     }
+}
 
-    void updateQuadtree() {
-        quadtree.clear();  // Clear the quadtree before each update
-        for (auto& pair : chunks) {
-            Chunk& chunk = pair.second;
-            for (auto& meteor : chunk.meteors) {
-                Node* node = new Node(meteor.getPosition(), &meteor, meteor.getRadius());
-                quadtree.insert(node);  // Insert the meteor into the quadtree
-            }
+void space::update_quadtree() {
+    quadtree_.clear();  // Clear the quadtree before each update
+    for (auto&[fst, snd] : chunks_) {
+        auto&[position, meteors] = snd;
+        for (auto& meteor : meteors) {
+            const node* new_node = new node(meteor.getPosition(), &meteor, meteor.get_radius());
+            quadtree_.insert(new_node);  // Insert the meteor into the quadtree
+        }
+    }
+}
+
+void space::run() {
+    while (window_.isOpen())
+    {
+        update();
+    }
+}
+
+void space::update() {
+    for (auto event = sf::Event{}; window_.pollEvent(event);) {
+        if (event.type == sf::Event::Closed) {
+            window_.close();
         }
     }
 
-    void run() {
-        while (window.isOpen())
-        {
-            update();
+    if (is_paused_) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+            is_paused_ = false;
+        }
+        return;
+    }
+
+    std::vector<meteor*> nearby_meteors;
+    const sf::FloatRect player_range = player_.getGlobalBounds();  // Use player's bounding box
+
+    quadtree_.retrieve(nearby_meteors, player_range);
+
+    // Check for collisions
+    for (const meteor* meteor : nearby_meteors) {
+        if (player_.check_collision(meteor->get_radius(), meteor->getPosition())) {
+            is_paused_ = true;
+            //Draw a dummy circle of the radius of the meteor that collided with the player
         }
     }
 
-    void update() {
-        for (auto event = sf::Event{}; window.pollEvent(event);) {
-            if (event.type == sf::Event::Closed) {
-                window.close();
-            }
-        }
+    projectiles_ = player_.update_player();
+    camera_.update(player_.get_player_position());
 
-        if (isPaused) {
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-                isPaused = false;
-            }
-            return;
-        }
+    update_chunks();
 
-        std::vector<Meteor*> nearbyMeteors;
-        sf::FloatRect playerRange = player.getGlobalBounds();  // Use player's bounding box
-
-        quadtree.retrieve(nearbyMeteors, playerRange);
-
-        // Check for collisions
-        for (Meteor* meteor : nearbyMeteors) {
-            if (player.checkCollision(meteor->getRadius(), meteor->getPosition())) {
-                isPaused = true;
-                //Draw a dummy circle of the radius of the meteor that collided with the player
-            }
-        }
-
-        projectiles = player.updatePlayer();
-        camera.update(player.getPlayerPosition());
-
-        updateChunks();
-
-        sf::Vector2f playerPosition = player.getPosition();
-        std::string playerPos = "(" + std::to_string(playerPosition.x) + ", " + std::to_string(playerPosition.y) + ")";
-        position.update_custom_value(playerPos);
-        std::string chunkPos = "(" + std::to_string(playerPosition.x / CHUNK_SIZE) + ", " + std::to_string(playerPosition.y / CHUNK_SIZE) + ")";
-        chunk.update_custom_value(chunkPos);
+    const sf::Vector2f player_position = player_.getPosition();
+    const std::string player_pos = "(" + std::to_string(player_position.x) + ", " + std::to_string(player_position.y) + ")";
+    position_.update_custom_value(player_pos);
+    const std::string chunk_pos = "(" + std::to_string(player_position.x / CHUNK_SIZE) + ", " + std::to_string(player_position.y / CHUNK_SIZE) + ")";
+    chunk_.update_custom_value(chunk_pos);
 
 
-        if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
-            score.increment();
-            scoreClock.restart();
-        }
-
-        score.update_value();
-        if (player.getFuel() <= 0) {
-            isPaused = true;
-        }
-        stamina.update_custom_value(std::to_string(player.getFuel()));
-
-
-        fps();
-        draw();
+    if (score_clock_.getElapsedTime().asSeconds() >= 1.0) {
+        score_.increment();
+        score_clock_.restart();
     }
 
-    void draw() {
-        window.clear();
+    score_.update_value();
 
-        drawChunks();
+    fps();
+    draw();
+}
 
-        // Draw game objects
-        window.draw(player);
+void space::draw() {
+    window_.clear();
+
+    draw_chunks();
+
+    // Draw game objects
+    window_.draw(player_);
+    for (const auto& meteor : meteors_) {
+        window_.draw(meteor);
+    }
+    for (const auto& projectile : projectiles_) {
+        window_.draw(projectile);
+    }
+
+    draw_ui();
+    window_.display();
+}
+
+void space::draw_chunks() {
+    // Draw all background tiles first
+    for (const auto&[fst, snd] : chunks_) {
+        const auto&[position, meteors] = snd;
+
+        sf::Sprite background_tile;
+        background_tile.setTexture(background_texture_);
+        background_tile.setPosition(position);
+        window_.draw(background_tile);
+    }
+
+    // Draw all meteors after background tiles
+    for (const auto&[fst, snd] : chunks_) {
+        const auto&[position, meteors] = snd;
+
         for (const auto& meteor : meteors) {
-            window.draw(meteor);
-        }
-        for (const auto& fuel : fuels) {
-            window.draw(fuel);
-        }
-        for (const auto& projectile : projectiles) {
-            window.draw(projectile);
-        }
-
-        drawUI();
-        window.display();
-    }
-
-    void drawChunks() {
-        // Draw all background tiles first
-        for (const auto& pair : chunks) {
-            const Chunk& chunk = pair.second;
-
-            sf::Sprite backgroundTile;
-            backgroundTile.setTexture(backgroundTexture);
-            backgroundTile.setPosition(chunk.position);
-            window.draw(backgroundTile);
-        }
-
-        // Draw all meteors after background tiles
-        for (const auto& pair : chunks) {
-            const Chunk& chunk = pair.second;
-
-            for (const auto& meteor : chunk.meteors) {
-                window.draw(meteor);
-            }
+            window_.draw(meteor);
         }
     }
+}
 
     // Draw UI elements using a fixed view
-    void drawUI() {
-        sf::View originalView = window.getView();
-        window.setView(window.getDefaultView());
+void space::draw_ui() {
+    const sf::View original_view = window_.getView();
+    window_.setView(window_.getDefaultView());
 
-        uiLayer.clear(sf::Color::Transparent);
-        uiLayer.draw(score);
-        uiLayer.draw(stamina);
-        uiLayer.draw(fpsText);
-        uiLayer.draw(position);
-        uiLayer.draw(chunk);
-        uiLayer.display();
+    ui_layer_.clear(sf::Color::Transparent);
+    ui_layer_.draw(score_);
+    ui_layer_.draw(fps_text_);
+    ui_layer_.draw(position_);
+    ui_layer_.draw(chunk_);
+    ui_layer_.display();
 
-        sf::Sprite uiSprite(uiLayer.getTexture());
-        window.draw(uiSprite);
+    const sf::Sprite ui_sprite(ui_layer_.getTexture());
+    window_.draw(ui_sprite);
 
-        window.setView(originalView);
+    window_.setView(original_view);
+}
+
+void space::fps() {
+    frames_++;
+    if (fps_clock_.getElapsedTime().asSeconds() - last_time_ >= 1.0f) {
+        fps_text_.setString("FPS: " + std::to_string(frames_));
+        frames_ = 0;
+        last_time_ += 1.0f;
     }
-
-    static bool isBelowBottomBoundary(const sf::Sprite& object, const sf::RenderWindow& window) {
-        float objectUpEdge = object.getPosition().y;
-        float viewportHeight = window.getSize().y;
-
-        return objectUpEdge > viewportHeight;
-    }
-
-    void fps() {
-        frames++;
-        float currentTime = fpsClock.getElapsedTime().asSeconds();
-        if (currentTime - lastTime >= 1.0f) {
-            fpsText.setString("FPS: " + std::to_string(frames));
-            frames = 0;
-            lastTime += 1.0f;
-        }
-    }
-};
+}
