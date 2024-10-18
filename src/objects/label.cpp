@@ -1,7 +1,7 @@
 #include "label.hpp"
 
 label::label(const sf::Vector2f position, std::string plabel, const unsigned int pvalue) : label_(std::move(plabel)), value_(pvalue){
-    font_.loadFromFile("/usr/share/fonts/TTF/JetBrainsMono-SemiBold.ttf");
+    font_.loadFromFile(ASSETS_DIR "/font.ttf");
     setFont(font_);
     setCharacterSize(24); // in pixels
     setFillColor(sf::Color::White);

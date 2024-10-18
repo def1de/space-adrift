@@ -98,7 +98,7 @@ void space::run() {
 
 void space::update() {
     for (auto event = sf::Event{}; window_.pollEvent(event);) {
-        if (event.type == sf::Event::Closed) {
+        if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             window_.close();
         }
     }
