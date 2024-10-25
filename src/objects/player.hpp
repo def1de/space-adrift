@@ -23,7 +23,9 @@ public:
 
     void move();
 
-    void rotatate(float delta_time, sf::Vector2f world_position);
+    void move_projectiles();
+
+    void rotate(float delta_time, sf::Vector2f world_position);
 
     void smooth_rotate(float target_angle, float delta_time);
 

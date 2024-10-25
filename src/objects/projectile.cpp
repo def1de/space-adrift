@@ -12,6 +12,14 @@ projectile::projectile(const sf::Vector2f position, const float angle_deg, const
 }
 
 void projectile::update() {
+    if(despawn_timer_.getElapsedTime().asSeconds() > 2) {
+        is_out_ = true;
+    }
+
     move(direction_);
     animated_sprite::update();
+}
+
+bool projectile::is_out() const {
+    return is_out_;
 }

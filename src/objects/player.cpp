@@ -1,6 +1,7 @@
 #include "player.hpp"
 
 #include <cmath>
+#include <iostream>
 
 player::player(sf::RenderWindow& pwindow) : window_(pwindow) {
     texture_.loadFromFile(ASSETS_DIR "/player.png");
@@ -20,10 +21,7 @@ player::player(sf::RenderWindow& pwindow) : window_(pwindow) {
 
 std::vector<projectile> player::update_player() {
     move();
-
-    for (auto& projectile : projectiles_) {
-        projectile.update();
-    }
+    move_projectiles();
 
     // Shoot if left mouse button is clicked
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
@@ -83,10 +81,22 @@ void player::move() {
 
     // Smoothly rotate the sprite
     const float delta_time = rotation_clock_.restart().asSeconds();
-    rotatate(delta_time, world_position);
+    rotate(delta_time, world_position);
 }
 
-void player::rotatate(const float delta_time, const sf::Vector2f world_position) {
+void player::move_projectiles() {
+    for (auto& proj : projectiles_) {
+        proj.update();
+    }
+
+    auto new_end = std::remove_if(projectiles_.begin(), projectiles_.end(), [](const projectile& p) {
+        return p.is_out();
+    });
+    projectiles_.erase(new_end, projectiles_.end());
+}
+
+
+void player::rotate(const float delta_time, const sf::Vector2f world_position) {
     const sf::Vector2f player_position = getPosition();
     const float angle_rad = atan2(world_position.y - player_position.y, world_position.x - player_position.x) + M_PI / 2;
     const float angle_deg = angle_rad * 180 / M_PI;
