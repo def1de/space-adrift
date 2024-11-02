@@ -31,6 +31,11 @@ add_executable(main src/main.cpp
         src/utils/Camera.cpp
         src/utils/Camera.hpp
         src/utils/random.hpp
+        src/scenes/menu.cpp
+        src/scenes/menu.hpp
+        src/scenes/menu.hpp
+        src/objects/button.cpp
+        src/objects/button.hpp
 )
 target_link_libraries(main PRIVATE sfml-graphics sfml-audio)
 target_compile_features(main PRIVATE cxx_std_17)
