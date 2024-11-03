@@ -44,7 +44,7 @@ private:
 
     // Container for chunks
 
-    sf::RenderWindow window_;
+    sf::RenderWindow& window_;
 
     // Very technical stuff
     quad quadtree_;
@@ -83,12 +83,12 @@ private:
     std::vector<projectile> projectiles_;
 
 public:
-    space();
+    explicit space(sf::RenderWindow& window);
 
     // Main game loop
     void run();
     // Updates
-    void update();
+    bool update();
     void update_chunks();
     void update_quadtree();
     // Helper Functions

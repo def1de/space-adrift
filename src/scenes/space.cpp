@@ -1,8 +1,8 @@
 #include "space.hpp"
 #include "../utils/random.hpp"
 
-space::space() :
-window_(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen),
+space::space(sf::RenderWindow& window) :
+window_(window),
 quadtree_(sf::FloatRect(0, 0, 5000, 5000)),
 player_(window_),
 camera_(window_),
@@ -11,8 +11,6 @@ fps_text_(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
 position_(sf::Vector2f(10.f, 82.f), "Position: ", 0),
 chunk_(sf::Vector2f(10.f, 106.f), "Chunk: ", 0)
 {
-    window_.setFramerateLimit(165);
-
     if(!background_texture_.loadFromFile(ASSETS_DIR "/background.png")) {
         std::cout << "Error loading background texture" << std::endl;
     }
@@ -90,16 +88,19 @@ void space::update_quadtree() {
 }
 
 void space::run() {
-    while (window_.isOpen())
+    bool is_running = true;
+    while (is_running)
     {
-        update();
+        is_running = update();
     }
+    // reset camera view
+    window_.setView(window_.getDefaultView());
 }
 
-void space::update() {
+bool space::update() {
     for (auto event = sf::Event{}; window_.pollEvent(event);) {
         if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-            window_.close();
+            return false;
         }
     }
 
@@ -107,7 +108,7 @@ void space::update() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
             is_paused_ = false;
         }
-        return;
+        return true;
     }
 
     std::vector<meteor*> nearby_meteors;
@@ -144,6 +145,8 @@ void space::update() {
 
     fps();
     draw();
+
+    return true;
 }
 
 void space::draw() {

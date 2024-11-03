@@ -10,12 +10,13 @@
 // }
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Button Example");
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen);
+    window.setFramerateLimit(165);
 
     sf::Vector2f play_button_pos = {window.getSize().x/2.0f, window.getSize().y/2.0f-50.0f};
     button play_button(3, play_button_pos, ASSETS_DIR "/buttons/play_idle.png", ASSETS_DIR "/buttons/play_hover.png", ASSETS_DIR "/buttons/play_active.png");
     play_button.set_callback([&window]() {
-        space space;
+        space space(window);
         space.run();
     });
 
