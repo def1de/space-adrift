@@ -13,6 +13,14 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
     background_texture_.loadFromFile(ASSETS_DIR "/menu_background.png");
     background_.setTexture(background_texture_);
 
+    // Load background music
+    if (!background_music_.openFromFile(ASSETS_DIR "/menu.ogg")) {
+        std::cerr << "Failed to load background music." << std::endl;
+    } else {
+        background_music_.setLoop(true);
+        background_music_.play();
+    }
+
     // Load animated planet
     planet_.setOrigin(planet_.getLocalBounds().width / 2.0f, planet_.getLocalBounds().height / 2.0f);
     planet_.setScale(6.0f, 6.0f);
@@ -38,9 +46,11 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
     title_.setScale(2.0f, 2.0f);
     title_.setPosition(window.getSize().x*0.75f, window.getSize().y / 4.0f);
 
-    play_button_.set_callback([&window]() {
+    play_button_.set_callback([&window, this]() {
         space space(window);
+        background_music_.stop();
         space.run();
+        background_music_.play();
     });
 
     exit_button_.set_callback([&window]() {
