@@ -12,6 +12,8 @@ private:
         sf::Texture active;
     };
 
+    sf::RenderWindow& window_;
+
     sf::RectangleShape shape_;
     sf::Font font_;
     sf::Text text_;
@@ -21,10 +23,10 @@ private:
     sf::Sprite sprite_;
 
 public:
-    button(const float scale, const sf::Vector2f& position, const std::string& idle_path, const std::string& hover_path, const std::string& active_path);
+    button(sf::RenderWindow& window, float scale, const sf::Vector2f& position, const std::string& idle_path, const std::string& hover_path, const std::string& active_path);
     void set_callback(std::function<void()> callback);
-    void handle_event(const sf::Event& event, const sf::RenderWindow& window);
-    void draw(sf::RenderWindow& window) const;
+    void handle_event(const sf::Event& event);
+    void draw() const;
 };
 
 #endif
