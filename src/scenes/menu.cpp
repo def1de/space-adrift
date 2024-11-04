@@ -1,7 +1,6 @@
 #include "menu.hpp"
 #include "space.hpp"
 #include <cmath>
-#include <iostream>
 
 menu::menu(sf::RenderWindow& window) :
 window_(window),
@@ -83,6 +82,10 @@ void menu::update() {
     player_.setPosition(planet_position.x + radius_ * std::sin(player_angle_), planet_position.y + radius_ * std::cos(player_angle_));
     player_.setRotation(player_angle_ * -180.0f / M_PI + 90.0f);
     player_angle_ += 0.0025f;
+
+    // Update UI elements
+    play_button_.update();
+    exit_button_.update();
 }
 
 void menu::draw() const {

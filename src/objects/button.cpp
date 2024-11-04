@@ -12,6 +12,11 @@ window_(window)
     sf::FloatRect bounds = sprite_.getLocalBounds();
     sprite_.setScale(scale, scale);
     sprite_.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+
+    sound_buffer_.loadFromFile(ASSETS_DIR "/button_click.ogg");
+    sound_.setBuffer(sound_buffer_);
+    sound_duration_ = sound_buffer_.getDuration().asMilliseconds();
+    sound_.setVolume(100.0f);
 }
 
 void button::set_callback(std::function<void()> callback)
@@ -26,7 +31,6 @@ void button::handle_event(const sf::Event& event)
         sf::Vector2f mouse = window_.mapPixelToCoords(sf::Mouse::getPosition(window_));
         if (sprite_.getGlobalBounds().contains(mouse)) {
             sprite_.setTexture(textures_.active);
-            callback_();
         }
     }
 
@@ -35,6 +39,9 @@ void button::handle_event(const sf::Event& event)
         sf::Vector2f mouse = window_.mapPixelToCoords(sf::Mouse::getPosition(window_));
         if (sprite_.getGlobalBounds().contains(mouse)) {
             sprite_.setTexture(textures_.hover);
+            sound_.play();
+            do_callback_ = true;
+            sound_clock_.restart();
         } else {
             sprite_.setTexture(textures_.idle);
         }
@@ -48,6 +55,13 @@ void button::handle_event(const sf::Event& event)
         } else {
             sprite_.setTexture(textures_.idle);
         }
+    }
+}
+
+void button::update() {
+    if (do_callback_ && sound_clock_.getElapsedTime().asMilliseconds() >= sound_duration_) {
+        do_callback_ = false;
+        callback_();
     }
 }
 
