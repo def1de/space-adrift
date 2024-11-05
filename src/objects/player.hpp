@@ -1,6 +1,10 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "projectile.hpp"
@@ -39,4 +43,4 @@ public:
     void draw();
 };
 
-#endif //PLAYER_HPP
+#endif
