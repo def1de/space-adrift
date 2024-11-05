@@ -1,11 +1,10 @@
 #include "player.hpp"
 
 #include <cmath>
-#include <iostream>
 
-player::player(sf::RenderWindow& pwindow) :
+player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager) :
 window_(pwindow),
-projectile_manager_(pwindow)
+projectile_manager_(pprojectile_manager)
 {
     texture_.loadFromFile(ASSETS_DIR "/player.png");
     setTexture(texture_);
@@ -22,7 +21,7 @@ projectile_manager_(pwindow)
     radius_ = bounds.width / 2;
 }
 
-void player::update_player() {
+void player::update() {
     move();
     projectile_manager_.update();
 
@@ -134,7 +133,7 @@ float player::get_radius() const {
     return radius_;
 }
 
-void player::draw() {
+void player::draw() const {
     window_.draw(*this);
     projectile_manager_.draw();
 }

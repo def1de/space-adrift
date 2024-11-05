@@ -1,10 +1,11 @@
 #include "space.hpp"
 #include "../utils/random.hpp"
 
-space::space(sf::RenderWindow& window) :
-window_(window),
+space::space(sf::RenderWindow& pwindow) :
+window_(pwindow),
 quadtree_(sf::FloatRect(0, 0, 5000, 5000)),
-player_(window_),
+projectile_manager_(pwindow, quadtree_),
+player_(window_, projectile_manager_),
 camera_(window_),
 score_(sf::Vector2f(10.f, 10.f), "Score: ", 0),
 fps_text_(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
@@ -78,11 +79,14 @@ void space::update_chunks() {
 
 void space::update_quadtree() {
     quadtree_.clear();  // Clear the quadtree before each update
-    for (auto&[fst, snd] : chunks_) {
-        auto&[position, meteors] = snd;
+    for (auto&[fst, chunk] : chunks_) {
+        auto&[position, meteors] = chunk;
         for (auto& meteor : meteors) {
-            const node* new_node = new node(meteor.getPosition(), &meteor, meteor.get_radius());
-            quadtree_.insert(new_node);  // Insert the meteor into the quadtree
+            // Create a new node for each meteor if meteor is not out
+            if (!meteor.is_out()) {
+                const node* new_node = new node(meteor.getPosition(), &meteor, meteor.get_radius());
+                quadtree_.insert(new_node);  // Insert the meteor into the quadtree
+            }
         }
     }
 }
@@ -118,16 +122,15 @@ bool space::update() {
 
     // Check for collisions
     for (const meteor* meteor : nearby_meteors) {
-        if (player_.check_collision(meteor->get_radius(), meteor->getPosition())) {
+        if (!meteor->is_out() && player_.check_collision(meteor->get_radius(), meteor->getPosition())) {
             is_paused_ = true;
-            //Draw a dummy circle of the radius of the meteor that collided with the player
         }
     }
-
-    player_.update_player();
     camera_.update(player_.get_player_position());
 
     update_chunks();
+
+    player_.update();
 
     const sf::Vector2f player_position = player_.getPosition();
     const std::string player_pos = "(" + std::to_string(player_position.x) + ", " + std::to_string(player_position.y) + ")";

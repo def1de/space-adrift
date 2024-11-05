@@ -16,6 +16,8 @@ public:
 
     void update() override;
     bool is_out() const;
+    void out();
+    bool check_collision(float radius, sf::Vector2f position) const;
 };
 
 #endif //PROJECTILE_HPP

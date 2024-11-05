@@ -9,14 +9,16 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "../objects/projectile.hpp"
+#include "../utils/quadtree.hpp"
 
 class projectile_manager {
 private:
     std::vector<projectile> projectiles_ = {};
     sf::RenderWindow& window_;
+    quad& quadtree_;
 
 public:
-    explicit projectile_manager(sf::RenderWindow& pwindow);
+    explicit projectile_manager(sf::RenderWindow& pwindow, quad& pquadtree);
 
     void append(sf::Vector2f position, float angle_deg);
     void update();

@@ -23,3 +23,14 @@ void projectile::update() {
 bool projectile::is_out() const {
     return is_out_;
 }
+
+void projectile::out() {
+    is_out_ = true;
+}
+
+bool projectile::check_collision(const float radius, const sf::Vector2f position) const {
+    const sf::Vector2f projectile_position = getPosition();
+    const float distance = std::sqrt(std::pow(projectile_position.x - position.x, 2) + std::pow(projectile_position.y - position.y, 2));
+
+    return distance < radius;
+}

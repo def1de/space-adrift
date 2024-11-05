@@ -16,5 +16,17 @@ float meteor::get_radius() const {
 }
 
 void meteor::update() {
+    if(is_out_) {
+        return;
+    }
     setRotation(getRotation()+.05f*speed_);
+}
+
+void meteor::out() {
+    setScale(0.5f, 0.5f);
+    is_out_ = true;
+}
+
+bool meteor::is_out() const{
+    return is_out_;
 }

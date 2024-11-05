@@ -12,6 +12,7 @@
 #include "../utils/quadtree.hpp"
 #include "../objects/meteor.hpp"
 #include "../utils/Camera.hpp"
+#include "../utils/projectile_manager.hpp"
 
 // For chunk management
 #include <unordered_set>
@@ -64,6 +65,9 @@ private:
     sf::Texture meteor_texture_;
     std::vector<meteor> meteors_;
 
+    //Projectiles
+    projectile_manager projectile_manager_;
+
     // UI
     sf::RenderTexture ui_layer_;
     label score_;
@@ -83,7 +87,7 @@ private:
     std::vector<projectile> projectiles_;
 
 public:
-    explicit space(sf::RenderWindow& window);
+    explicit space(sf::RenderWindow& pwindow);
 
     // Main game loop
     void run();
