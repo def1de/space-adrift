@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "projectile.hpp"
+#include "../utils/projectile_manager.hpp"
 
 class player final: public sf::Sprite {
 private:
@@ -13,17 +14,16 @@ private:
     sf::RenderWindow& window_;
     sf::Clock rotation_clock_;
     sf::Texture texture_;
-    std::vector<projectile> projectiles_;
+    // std::vector<projectile> projectiles_;
+    projectile_manager projectile_manager_;
     bool was_mouse_pressed_ = false;
 
 public:
     explicit player(sf::RenderWindow& pwindow);
 
-    std::vector<projectile> update_player();
+    void update_player();
 
     void move();
-
-    void move_projectiles();
 
     void rotate(float delta_time, sf::Vector2f world_position);
 
@@ -35,6 +35,8 @@ public:
     bool check_collision(float enemy_radius, sf::Vector2f position) const;
 
     float get_radius() const;
+
+    void draw();
 };
 
 #endif //PLAYER_HPP

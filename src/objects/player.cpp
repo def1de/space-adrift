@@ -3,7 +3,10 @@
 #include <cmath>
 #include <iostream>
 
-player::player(sf::RenderWindow& pwindow) : window_(pwindow) {
+player::player(sf::RenderWindow& pwindow) :
+window_(pwindow),
+projectile_manager_(pwindow)
+{
     texture_.loadFromFile(ASSETS_DIR "/player.png");
     setTexture(texture_);
     setScale(3.f, 3.f);
@@ -19,21 +22,19 @@ player::player(sf::RenderWindow& pwindow) : window_(pwindow) {
     radius_ = bounds.width / 2;
 }
 
-std::vector<projectile> player::update_player() {
+void player::update_player() {
     move();
-    move_projectiles();
+    projectile_manager_.update();
 
     // Shoot if left mouse button is clicked
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
         if(!was_mouse_pressed_) {
-            projectiles_.emplace_back(getPosition(), getRotation(), ASSETS_DIR "/player_projectile.png", 4, 16, 0.1f);
+            projectile_manager_.append(getPosition(), getRotation());
             was_mouse_pressed_ = true;
         }
     } else {
         was_mouse_pressed_ = false;
     }
-
-    return projectiles_;
 }
 
 void player::move() {
@@ -84,17 +85,6 @@ void player::move() {
     rotate(delta_time, world_position);
 }
 
-void player::move_projectiles() {
-    for (auto& proj : projectiles_) {
-        proj.update();
-    }
-
-    auto new_end = std::remove_if(projectiles_.begin(), projectiles_.end(), [](const projectile& p) {
-        return p.is_out();
-    });
-    projectiles_.erase(new_end, projectiles_.end());
-}
-
 
 void player::rotate(const float delta_time, const sf::Vector2f world_position) {
     const sf::Vector2f player_position = getPosition();
@@ -142,4 +132,9 @@ bool player::check_collision(const float enemy_radius, const sf::Vector2f positi
 
 float player::get_radius() const {
     return radius_;
+}
+
+void player::draw() {
+    window_.draw(*this);
+    projectile_manager_.draw();
 }

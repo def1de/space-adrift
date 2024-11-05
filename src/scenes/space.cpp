@@ -124,7 +124,7 @@ bool space::update() {
         }
     }
 
-    projectiles_ = player_.update_player();
+    player_.update_player();
     camera_.update(player_.get_player_position());
 
     update_chunks();
@@ -155,12 +155,9 @@ void space::draw() {
     draw_chunks();
 
     // Draw game objects
-    window_.draw(player_);
+    player_.draw();
     for (const auto& meteor : meteors_) {
         window_.draw(meteor);
-    }
-    for (const auto& projectile : projectiles_) {
-        window_.draw(projectile);
     }
 
     draw_ui();
