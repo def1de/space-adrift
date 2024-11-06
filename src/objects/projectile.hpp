@@ -1,7 +1,7 @@
 #ifndef PROJECTILE_HPP
 #define PROJECTILE_HPP
 
-#include "../utils/AnimatedSprite.hpp"
+#include "../utils/animated_sprite.hpp"
 
 class projectile final : public animated_sprite {
 private:

@@ -1,6 +1,7 @@
 #include "menu.hpp"
 #include "space.hpp"
 #include <cmath>
+#include <iostream>
 
 menu::menu(sf::RenderWindow& window) :
 window_(window),
@@ -76,6 +77,7 @@ void menu::run() {
 void menu::update() {
     // Update animated background
     planet_.update();
+    // std::cout << "Planet updated" << std::endl;
 
     // Update player
     sf::Vector2f planet_position = planet_.getPosition();

@@ -24,8 +24,8 @@ add_executable(main src/main.cpp
         src/objects/label.hpp
         src/utils/quadtree.cpp
         src/utils/quadtree.hpp
-        src/utils/AnimatedSprite.cpp
-        src/utils/AnimatedSprite.hpp
+        src/utils/animated_sprite.cpp
+        src/utils/animated_sprite.hpp
         src/objects/projectile.cpp
         src/objects/projectile.hpp
         src/utils/Camera.cpp

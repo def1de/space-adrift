@@ -27,6 +27,6 @@ void meteor::out() {
     is_out_ = true;
 }
 
-bool meteor::is_out() const{
+bool meteor::is_out() const {
     return is_out_;
 }

@@ -2,6 +2,7 @@
 #define METEOR_HPP
 
 #include <SFML/Graphics.hpp>
+#include "../utils/animated_sprite.hpp"
 
 class meteor final : public sf::Sprite {
 private:

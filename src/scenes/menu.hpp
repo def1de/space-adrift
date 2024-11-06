@@ -5,7 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include "../objects/button.hpp"
-#include "../utils/AnimatedSprite.hpp"
+#include "../utils/animated_sprite.hpp"
 
 class menu {
 private:
