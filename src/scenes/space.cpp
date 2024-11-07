@@ -18,10 +18,6 @@ chunk_(sf::Vector2f(10.f, 106.f), "Chunk: ", 0)
 
     ui_layer_.create(window_.getSize().x, window_.getSize().y);
 
-    if (!meteor_texture_.loadFromFile(ASSETS_DIR "/meteor.png")) {
-        std::cerr << "Failed to load meteor texture." << std::endl;
-    }
-
     if(!background_music_.openFromFile(ASSETS_DIR "/soundtrack.ogg")) {
         std::cerr << "Failed to load background music." << std::endl;
     } else {
@@ -55,9 +51,9 @@ void space::update_chunks() {
                 chunk.position = sf::Vector2f((start_x + i) * CHUNK_SIZE, (start_y + j) * CHUNK_SIZE);
 
                 // Randomly spawn meteors
-                const int num_meteors = random(1, 3);
+                const int num_meteors = random(0, 2);
                 for (int m = 0; m < num_meteors; ++m) {
-                    meteor meteor(meteor_texture_);
+                    meteor meteor{};
                     const float meteor_x = chunk.position.x + random(0, CHUNK_SIZE - static_cast<int>(meteor.getGlobalBounds().width));
                     const float meteor_y = chunk.position.y + random(0, CHUNK_SIZE - static_cast<int>(meteor.getGlobalBounds().height));
                     meteor.setPosition(meteor_x, meteor_y);

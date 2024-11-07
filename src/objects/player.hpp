@@ -10,7 +10,7 @@
 
 class player final: public sf::Sprite {
 private:
-    int speed_ = 5;
+    int speed_ = 4;
     int radius_;
 
     sf::RenderWindow& window_;

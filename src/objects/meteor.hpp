@@ -1,20 +1,23 @@
 #ifndef METEOR_HPP
 #define METEOR_HPP
 
-#include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "../utils/animated_sprite.hpp"
 
-class meteor final : public sf::Sprite {
+class meteor final : public animated_sprite {
 private:
     float speed_;
     float radius_;
     bool is_out_ = false;
+
+    sf::SoundBuffer buffer_;
+    sf::Sound sound_;
 public:
-    explicit meteor(const sf::Texture& texture);
+    explicit meteor();
 
     float get_radius() const;
 
-    void update();
+    void update() override;
 
     void out();
     bool is_out() const;

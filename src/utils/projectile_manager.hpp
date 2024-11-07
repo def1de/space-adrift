@@ -7,6 +7,7 @@
 #define FRAME_DURATION 0.1f
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <vector>
 #include "../objects/projectile.hpp"
 #include "../utils/quadtree.hpp"
@@ -16,6 +17,9 @@ private:
     std::vector<projectile> projectiles_ = {};
     sf::RenderWindow& window_;
     quad& quadtree_;
+
+    sf::SoundBuffer buffer_;
+    sf::Sound sound_;
 
 public:
     explicit projectile_manager(sf::RenderWindow& pwindow, quad& pquadtree);

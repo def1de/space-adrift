@@ -27,6 +27,8 @@ public:
     void set_animation(const std::string& name);
 
     virtual void update(); // virtual keyword allows polymorphism
+
+    bool is_animation_done() const;
 };
 
 #endif

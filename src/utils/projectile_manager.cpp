@@ -1,9 +1,16 @@
 #include "projectile_manager.hpp"
 
-projectile_manager::projectile_manager(sf::RenderWindow& pwindow, quad& pquadtree) : window_(pwindow), quadtree_(pquadtree) {}
+projectile_manager::projectile_manager(sf::RenderWindow& pwindow, quad& pquadtree) : window_(pwindow), quadtree_(pquadtree) {
+    if(!buffer_.loadFromFile(ASSETS_DIR "/projectile_shot.ogg")) {
+        throw std::runtime_error("Failed to load projectile shot sound.");
+    } else {
+        sound_.setBuffer(buffer_);
+    }
+}
 
 void projectile_manager::append(sf::Vector2f position, float angle_deg) {
     projectiles_.emplace_back(position, angle_deg, TEXTURE_PATH, FRAME_WIDTH, FRAME_HEIGHT, FRAME_DURATION);
+    sound_.play();
 }
 
 void projectile_manager::update() {

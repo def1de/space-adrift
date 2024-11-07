@@ -37,7 +37,6 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
     const sf::FloatRect player_bounds = player_.getGlobalBounds();
     const sf::FloatRect planet_bounds = planet_.getGlobalBounds();
     radius_ = (player_bounds.width + planet_bounds.width) / 2.0f + 50.0f;
-    std::cout << "Radius: " << radius_ << std::endl;
 
     // Load title
     title_texture_.loadFromFile(ASSETS_DIR "/menu_title.png");
