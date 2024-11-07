@@ -119,7 +119,10 @@ bool space::update() {
     // Check for collisions
     for (const meteor* meteor : nearby_meteors) {
         if (!meteor->is_out() && player_.check_collision(meteor->get_radius(), meteor->getPosition())) {
-            is_paused_ = true;
+            background_music_.stop();
+            player_.die();
+            // return false;
+            // is_paused_ = true;
         }
     }
     camera_.update(player_.get_player_position());
@@ -145,7 +148,7 @@ bool space::update() {
     fps();
     draw();
 
-    return true;
+    return player_.status();
 }
 
 void space::draw() {

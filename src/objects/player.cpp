@@ -2,12 +2,11 @@
 
 #include <cmath>
 
-player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager) :
+player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager) : animated_sprite(PLAYER_IDLE_TEXTURE_PATH, 64, 64, 0.1f),
 window_(pwindow),
 projectile_manager_(pprojectile_manager)
 {
-    texture_.loadFromFile(ASSETS_DIR "/player.png");
-    setTexture(texture_);
+    texture_.loadFromFile(PLAYER_IDLE_TEXTURE_PATH);
     setScale(3.f, 3.f);
 
     const auto texture_size = texture_.getSize();
@@ -19,21 +18,31 @@ projectile_manager_(pprojectile_manager)
 
     const sf::FloatRect bounds = getLocalBounds();
     radius_ = bounds.width / 2;
+
+    if(!buffer_.loadFromFile(ASSETS_DIR "/player_death.ogg")) {
+        throw std::runtime_error("Failed to load player death sound.");
+    }
+    sound_.setBuffer(buffer_);
+    sound_duration_ = buffer_.getDuration().asMilliseconds();
+
+    add_animation("death", PLAYER_DEATH_TEXTURE_PATH, 64, 64, 0.1f, false);
 }
 
 void player::update() {
-    move();
-    projectile_manager_.update();
-
-    // Shoot if left mouse button is clicked
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-        if(!was_mouse_pressed_) {
-            projectile_manager_.append(getPosition(), getRotation());
-            was_mouse_pressed_ = true;
+    if(!is_dead_) {
+        move();
+        projectile_manager_.update();
+        // Shoot if left mouse button is clicked
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            if(!was_mouse_pressed_) {
+                projectile_manager_.append(getPosition(), getRotation());
+                was_mouse_pressed_ = true;
+            }
+        } else {
+            was_mouse_pressed_ = false;
         }
-    } else {
-        was_mouse_pressed_ = false;
     }
+    animated_sprite::update();
 }
 
 void player::move() {
@@ -136,4 +145,17 @@ float player::get_radius() const {
 void player::draw() const {
     window_.draw(*this);
     projectile_manager_.draw();
+}
+
+void player::die() {
+    if(!is_dead_) {
+        set_animation("death");
+        sound_.play();
+        sound_clock_.restart();
+        is_dead_ = true;
+    }
+}
+
+bool player::status() const {
+    return !(is_dead_ && sound_clock_.getElapsedTime().asMilliseconds() >= sound_duration_ && animated_sprite::is_animation_done());
 }

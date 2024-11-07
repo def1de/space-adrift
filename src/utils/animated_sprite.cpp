@@ -25,6 +25,7 @@ void animated_sprite::add_animation(const std::string& name, const std::string &
     }
 
     animation_list_.push_back(new_animation);
+    std::cout << "\nAdded animation: " << name << " with " << new_animation.frames.size() << " frames" << std::endl;
 }
 
 void animated_sprite::set_animation(const std::string& name) {
@@ -34,6 +35,7 @@ void animated_sprite::set_animation(const std::string& name) {
             current_frame_ = 0;
             setTexture(current_animation_.texture);
             setTextureRect(current_animation_.frames[0]);
+            // std::cout << "Set animation: " << name << std::endl;
             return;
         }
     }
@@ -46,6 +48,10 @@ void animated_sprite::update() {
     if (animation_clock_.getElapsedTime().asSeconds() >= current_animation_.frame_duration) {
         // Move to the next frame
         current_frame_ = (current_frame_ + 1) % current_animation_.frames.size();
+
+        if(current_animation_.name == "death") {
+            std::cout << "Current frame: " << current_frame_ << std::endl;
+        }
 
         setTextureRect(current_animation_.frames[current_frame_]);
         animation_clock_.restart();
