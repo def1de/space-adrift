@@ -1,11 +1,13 @@
 #include "button.hpp"
 
+#include "../utils/texture_manager.hpp"
+
 button::button(sf::RenderWindow& window, const float scale, const sf::Vector2f& position, const std::string& idle_path, const std::string& hover_path, const std::string& active_path) :
 window_(window)
 {
-    textures_.idle.loadFromFile(idle_path);
-    textures_.hover.loadFromFile(hover_path);
-    textures_.active.loadFromFile(active_path);
+    textures_.idle = texture_manager::get_texture(idle_path);
+    textures_.hover = texture_manager::get_texture(hover_path);
+    textures_.active = texture_manager::get_texture(active_path);
 
     sprite_.setTexture(textures_.idle);
     sprite_.setPosition(position);

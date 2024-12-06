@@ -21,7 +21,6 @@ private:
 
     sf::RenderWindow& window_;
     sf::Clock rotation_clock_;
-    sf::Texture texture_;
     projectile_manager& projectile_manager_;
     bool was_mouse_pressed_ = false;
 

@@ -1,5 +1,6 @@
 #include "space.hpp"
 #include "../utils/random.hpp"
+#include "../utils/texture_manager.hpp"
 
 space::space(sf::RenderWindow& pwindow) :
 window_(pwindow),
@@ -12,9 +13,7 @@ fps_text_(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
 position_(sf::Vector2f(10.f, 82.f), "Position: ", 0),
 chunk_(sf::Vector2f(10.f, 106.f), "Chunk: ", 0)
 {
-    if(!background_texture_.loadFromFile(ASSETS_DIR "/background.png")) {
-        std::cout << "Error loading background texture" << std::endl;
-    }
+    background_texture_ = texture_manager::get_texture(ASSETS_DIR "/background.png");
 
     ui_layer_.create(window_.getSize().x, window_.getSize().y);
 

@@ -1,15 +1,16 @@
 #include "player.hpp"
 
+#include "../utils/texture_manager.hpp"
 #include <cmath>
 
 player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager) : animated_sprite(PLAYER_IDLE_TEXTURE_PATH, 64, 64, 0.1f),
 window_(pwindow),
 projectile_manager_(pprojectile_manager)
 {
-    texture_.loadFromFile(PLAYER_IDLE_TEXTURE_PATH);
+    sf::Texture texture = texture_manager::get_texture(PLAYER_IDLE_TEXTURE_PATH);
     setScale(3.f, 3.f);
 
-    const auto texture_size = texture_.getSize();
+    const auto texture_size = texture.getSize();
     const auto window_size = window_.getSize();
 
     setOrigin(texture_size.x / 2.0f, texture_size.y / 2.0f);

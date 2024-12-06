@@ -31,6 +31,9 @@ void meteor::update() {
 }
 
 void meteor::out() {
+    if(is_out_) {
+        return;
+    }
     is_out_ = true;
     set_animation("explode");
     // Ensure the sound is not already playing

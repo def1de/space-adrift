@@ -1,4 +1,5 @@
 #include "animated_sprite.hpp"
+#include "texture_manager.hpp"
 #include <iostream>
 
 animated_sprite::animated_sprite(const std::string& texture_path, int frame_width, int frame_height, float frame_duration) : current_frame_(0) {
@@ -9,9 +10,7 @@ animated_sprite::animated_sprite(const std::string& texture_path, int frame_widt
 void animated_sprite::add_animation(const std::string& name, const std::string &texture_path, int frame_width, int frame_height, float frame_duration, bool loop) {
     animation new_animation;
     new_animation.name = name;
-    if (!new_animation.texture.loadFromFile(texture_path)) {
-        throw std::runtime_error("Failed to load texture");
-    }
+    new_animation.texture = texture_manager::get_texture(texture_path);
     int frames_x = new_animation.texture.getSize().x / frame_width;
     int frames_y = new_animation.texture.getSize().y / frame_height;
 

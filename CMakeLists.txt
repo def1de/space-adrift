@@ -38,6 +38,8 @@ add_executable(main src/main.cpp
         src/objects/button.hpp
         src/utils/projectile_manager.hpp
         src/utils/projectile_manager.cpp
+        src/utils/texture_manager.cpp
+        src/utils/texture_manager.hpp
 )
 target_link_libraries(main PRIVATE sfml-graphics sfml-audio)
 target_compile_features(main PRIVATE cxx_std_17)
