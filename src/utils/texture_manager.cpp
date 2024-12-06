@@ -1,18 +1,20 @@
 #include "texture_manager.hpp"
 
-sf::Texture &texture_manager::get_texture(const std::string &texture_path) {
-    static std::map<std::string, sf::Texture> textures;
+namespace texture_manager {
+    std::map<std::string, std::shared_ptr<sf::Texture>> textures_;
 
-    auto search = textures.find(texture_path);
-    if (search != textures.end()) {
-        return search->second; // Return the texture if it has already been loaded
+    std::shared_ptr<sf::Texture> get_texture(const std::string &texture_path) {
+        auto search = textures_.find(texture_path);
+        if (search != textures_.end()) {
+            return search->second; // Return the shared pointer if the texture is already loaded
+        }
+
+        auto texture = std::make_shared<sf::Texture>();
+        if (!texture->loadFromFile(texture_path)) {
+            throw std::runtime_error("Failed to load texture: " + texture_path);
+        }
+
+        textures_[texture_path] = texture; // Store the shared pointer in the map
+        return texture;
     }
-
-    sf::Texture texture;
-    if (!texture.loadFromFile(texture_path)) {
-        throw std::runtime_error("Failed to load texture: " + texture_path);
-    }
-
-    textures[texture_path] = texture; // Store the texture in the map
-    return textures[texture_path];
 }

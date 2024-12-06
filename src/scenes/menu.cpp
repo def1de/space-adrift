@@ -12,7 +12,7 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
 {
     // Load background
     // background_texture_.loadFromFile(ASSETS_DIR "/menu_background.png");
-    background_.setTexture(texture_manager::get_texture(ASSETS_DIR "/menu_background.png"));
+    background_.setTexture(*texture_manager::get_texture(ASSETS_DIR "/menu_background.png"));
 
     // Load background music
     if (!background_music_.openFromFile(ASSETS_DIR "/menu.ogg")) {
@@ -29,7 +29,7 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
 
     // Load player
     // player_texture.loadFromFile(ASSETS_DIR "/player.png");
-    player_.setTexture(texture_manager::get_texture(ASSETS_DIR "/player.png"));
+    player_.setTexture(*texture_manager::get_texture(ASSETS_DIR "/player.png"));
     player_.setOrigin(player_.getLocalBounds().width / 2.0f, player_.getLocalBounds().height / 2.0f);
     player_.setScale(5.0f, 5.0f);
     player_.setPosition(window.getSize().x*0.25+300.0f, window.getSize().y / 2.0f);
@@ -41,7 +41,7 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
 
     // Load title
     // title_texture_.loadFromFile(ASSETS_DIR "/menu_title.png");
-    title_.setTexture(texture_manager::get_texture(ASSETS_DIR "/menu_title.png"));
+    title_.setTexture(*texture_manager::get_texture(ASSETS_DIR "/menu_title.png"));
     title_.setOrigin(title_.getLocalBounds().width / 2.0f, title_.getLocalBounds().height / 2.0f);
     title_.setScale(2.0f, 2.0f);
     title_.setPosition(window.getSize().x*0.75f, window.getSize().y / 4.0f);
@@ -77,7 +77,6 @@ void menu::run() {
 void menu::update() {
     // Update animated background
     planet_.update();
-    // std::cout << "Planet updated" << std::endl;
 
     // Update player
     sf::Vector2f planet_position = planet_.getPosition();

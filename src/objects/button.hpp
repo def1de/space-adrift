@@ -4,13 +4,14 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <functional>
+#include <memory>
 
 class button {
 private:
     struct textures {
-        sf::Texture idle;
-        sf::Texture hover;
-        sf::Texture active;
+        std::shared_ptr<sf::Texture> idle;
+        std::shared_ptr<sf::Texture> hover;
+        std::shared_ptr<sf::Texture> active;
     };
 
     sf::RenderWindow& window_;

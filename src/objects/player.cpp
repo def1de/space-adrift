@@ -7,7 +7,7 @@ player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manage
 window_(pwindow),
 projectile_manager_(pprojectile_manager)
 {
-    sf::Texture texture = texture_manager::get_texture(PLAYER_IDLE_TEXTURE_PATH);
+    sf::Texture texture = *texture_manager::get_texture(PLAYER_IDLE_TEXTURE_PATH);
     setScale(3.f, 3.f);
 
     const auto texture_size = texture.getSize();

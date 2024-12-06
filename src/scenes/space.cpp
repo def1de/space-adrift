@@ -13,7 +13,7 @@ fps_text_(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
 position_(sf::Vector2f(10.f, 82.f), "Position: ", 0),
 chunk_(sf::Vector2f(10.f, 106.f), "Chunk: ", 0)
 {
-    background_texture_ = texture_manager::get_texture(ASSETS_DIR "/background.png");
+    background_texture_ = *texture_manager::get_texture(ASSETS_DIR "/background.png");
 
     ui_layer_.create(window_.getSize().x, window_.getSize().y);
 
@@ -101,13 +101,6 @@ bool space::update() {
         if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             return false;
         }
-    }
-
-    if (is_paused_) {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-            is_paused_ = false;
-        }
-        return true;
     }
 
     std::vector<meteor*> nearby_meteors;

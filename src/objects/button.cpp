@@ -9,7 +9,7 @@ window_(window)
     textures_.hover = texture_manager::get_texture(hover_path);
     textures_.active = texture_manager::get_texture(active_path);
 
-    sprite_.setTexture(textures_.idle);
+    sprite_.setTexture(*textures_.idle);
     sprite_.setPosition(position);
     sf::FloatRect bounds = sprite_.getLocalBounds();
     sprite_.setScale(scale, scale);
@@ -32,7 +32,7 @@ void button::handle_event(const sf::Event& event)
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
         sf::Vector2f mouse = window_.mapPixelToCoords(sf::Mouse::getPosition(window_));
         if (sprite_.getGlobalBounds().contains(mouse)) {
-            sprite_.setTexture(textures_.active);
+            sprite_.setTexture(*textures_.active);
         }
     }
 
@@ -40,12 +40,12 @@ void button::handle_event(const sf::Event& event)
     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
         sf::Vector2f mouse = window_.mapPixelToCoords(sf::Mouse::getPosition(window_));
         if (sprite_.getGlobalBounds().contains(mouse)) {
-            sprite_.setTexture(textures_.hover);
+            sprite_.setTexture(*textures_.hover);
             sound_.play();
             do_callback_ = true;
             sound_clock_.restart();
         } else {
-            sprite_.setTexture(textures_.idle);
+            sprite_.setTexture(*textures_.idle);
         }
     }
 
@@ -53,9 +53,9 @@ void button::handle_event(const sf::Event& event)
     if(event.type == sf::Event::MouseMoved) {
         sf::Vector2f mouse = window_.mapPixelToCoords(sf::Mouse::getPosition(window_));
         if (sprite_.getGlobalBounds().contains(mouse)) {
-            sprite_.setTexture(textures_.hover);
+            sprite_.setTexture(*textures_.hover);
         } else {
-            sprite_.setTexture(textures_.idle);
+            sprite_.setTexture(*textures_.idle);
         }
     }
 }

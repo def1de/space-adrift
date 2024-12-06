@@ -1,13 +1,14 @@
 #ifndef ANIMATEDSPRITE_HPP
 #define ANIMATEDSPRITE_HPP
 
+#include <memory>
 #include <SFML/Graphics.hpp>
 
 class animated_sprite : public sf::Sprite {
 private:
     struct animation {
         std::string name;
-        sf::Texture texture;
+        std::shared_ptr<sf::Texture> texture;
         std::vector<sf::IntRect> frames;
         float frame_duration;
 

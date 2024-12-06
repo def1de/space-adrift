@@ -1,14 +1,14 @@
-//
-// Created by illia on 12/6/24.
-//
-
 #ifndef TEXTURE_MANAGER_HPP
 #define TEXTURE_MANAGER_HPP
 
 #include <SFML/Graphics.hpp>
+#include <memory>
+#include <map>
+#include <stdexcept>
 
 namespace texture_manager {
-    sf::Texture &get_texture(const std::string &texture_path);
+    extern std::map<std::string, std::shared_ptr<sf::Texture>> textures_;
+    std::shared_ptr<sf::Texture> get_texture(const std::string &texture_path);
 }
 
 
