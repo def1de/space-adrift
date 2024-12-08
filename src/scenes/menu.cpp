@@ -40,7 +40,6 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
     radius_ = (player_bounds.width + planet_bounds.width) / 2.0f + 50.0f;
 
     // Load title
-    // title_texture_.loadFromFile(ASSETS_DIR "/menu_title.png");
     title_.setTexture(*texture_manager::get_texture(ASSETS_DIR "/menu_title.png"));
     title_.setOrigin(title_.getLocalBounds().width / 2.0f, title_.getLocalBounds().height / 2.0f);
     title_.setScale(2.0f, 2.0f);

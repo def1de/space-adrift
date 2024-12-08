@@ -1,5 +1,6 @@
 #include "meteor.hpp"
 #include "../utils/random.hpp"
+#include "../utils/sound_manager.hpp"
 #include <iostream>
 
 meteor::meteor(): animated_sprite(ASSETS_DIR "/meteor.png", 96, 96, 0.1f) {
@@ -12,10 +13,7 @@ meteor::meteor(): animated_sprite(ASSETS_DIR "/meteor.png", 96, 96, 0.1f) {
 
     add_animation("explode", ASSETS_DIR "/meteor_explode.png", 96, 96, 0.1f, false);
 
-    if(!buffer_.loadFromFile(ASSETS_DIR "/meteor_explosion.ogg")) {
-        throw std::runtime_error("Failed to load meteor explosion sound.");
-    }
-    sound_.setBuffer(buffer_);
+    sound_ = sound_manager::get_sound(ASSETS_DIR "/meteor_explosion.ogg");
 }
 
 float meteor::get_radius() const {
@@ -37,11 +35,10 @@ void meteor::out() {
     is_out_ = true;
     set_animation("explode");
     // Ensure the sound is not already playing
-    if (sound_.getStatus() == sf::Sound::Playing) {
-        sound_.stop();
+    if (sound_->getStatus() == sf::Sound::Playing) {
+        sound_->stop();
     }
-    sound_.setBuffer(buffer_);
-    sound_.play();
+    sound_->play();
 }
 
 bool meteor::is_out() const {

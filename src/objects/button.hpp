@@ -25,8 +25,7 @@ private:
     sf::Sprite sprite_;
 
     // Button sounds
-    sf::SoundBuffer sound_buffer_;
-    sf::Sound sound_;
+    std::shared_ptr<sf::Sound> sound_;
     bool do_callback_ = false;
     sf::Clock sound_clock_;
     float sound_duration_;

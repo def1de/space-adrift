@@ -1,6 +1,7 @@
 #include "button.hpp"
 
 #include "../utils/texture_manager.hpp"
+#include "../utils/sound_manager.hpp"
 
 button::button(sf::RenderWindow& window, const float scale, const sf::Vector2f& position, const std::string& idle_path, const std::string& hover_path, const std::string& active_path) :
 window_(window)
@@ -15,10 +16,11 @@ window_(window)
     sprite_.setScale(scale, scale);
     sprite_.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
 
-    sound_buffer_.loadFromFile(ASSETS_DIR "/button_click.ogg");
-    sound_.setBuffer(sound_buffer_);
-    sound_duration_ = sound_buffer_.getDuration().asMilliseconds();
-    sound_.setVolume(100.0f);
+    sf::SoundBuffer sound_buffer;
+    sound_buffer.loadFromFile(ASSETS_DIR "/button_click.ogg");
+    sound_duration_ = sound_buffer.getDuration().asMilliseconds();
+
+    sound_ = sound_manager::get_sound(ASSETS_DIR "/button_click.ogg");
 }
 
 void button::set_callback(std::function<void()> callback)
@@ -41,7 +43,7 @@ void button::handle_event(const sf::Event& event)
         sf::Vector2f mouse = window_.mapPixelToCoords(sf::Mouse::getPosition(window_));
         if (sprite_.getGlobalBounds().contains(mouse)) {
             sprite_.setTexture(*textures_.hover);
-            sound_.play();
+            sound_->play();
             do_callback_ = true;
             sound_clock_.restart();
         } else {

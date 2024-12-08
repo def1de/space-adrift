@@ -27,8 +27,7 @@ private:
     sf::Clock sound_clock_;
     int sound_duration_;
 
-    sf::SoundBuffer buffer_;
-    sf::Sound sound_;
+    std::shared_ptr<sf::Sound> sound_;
 
 public:
     explicit player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager);

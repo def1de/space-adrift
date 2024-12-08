@@ -18,8 +18,7 @@ private:
     sf::RenderWindow& window_;
     quad& quadtree_;
 
-    sf::SoundBuffer buffer_;
-    sf::Sound sound_;
+    std::shared_ptr<sf::Sound> sound_;
 
 public:
     explicit projectile_manager(sf::RenderWindow& pwindow, quad& pquadtree);

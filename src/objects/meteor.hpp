@@ -10,8 +10,8 @@ private:
     float radius_;
     bool is_out_ = false;
 
-    sf::SoundBuffer buffer_;
-    sf::Sound sound_;
+    std::shared_ptr<sf::Sound> sound_;
+
 public:
     explicit meteor();
 

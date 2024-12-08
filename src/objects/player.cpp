@@ -3,9 +3,11 @@
 #include "../utils/texture_manager.hpp"
 #include <cmath>
 
+#include "../utils/sound_manager.hpp"
+
 player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager) : animated_sprite(PLAYER_IDLE_TEXTURE_PATH, 64, 64, 0.1f),
-window_(pwindow),
-projectile_manager_(pprojectile_manager)
+                                                                                     window_(pwindow),
+                                                                                     projectile_manager_(pprojectile_manager)
 {
     sf::Texture texture = *texture_manager::get_texture(PLAYER_IDLE_TEXTURE_PATH);
     setScale(3.f, 3.f);
@@ -20,11 +22,10 @@ projectile_manager_(pprojectile_manager)
     const sf::FloatRect bounds = getLocalBounds();
     radius_ = bounds.width / 2;
 
-    if(!buffer_.loadFromFile(ASSETS_DIR "/player_death.ogg")) {
-        throw std::runtime_error("Failed to load player death sound.");
-    }
-    sound_.setBuffer(buffer_);
-    sound_duration_ = buffer_.getDuration().asMilliseconds();
+    sf::SoundBuffer sound_buffer;
+    sound_buffer.loadFromFile(ASSETS_DIR "/player_death.ogg");
+    sound_duration_ = sound_buffer.getDuration().asMilliseconds();
+    sound_ = sound_manager::get_sound(ASSETS_DIR "/player_death.ogg");
 
     add_animation("death", PLAYER_DEATH_TEXTURE_PATH, 64, 64, 0.1f, false);
 }
@@ -151,7 +152,7 @@ void player::draw() const {
 void player::die() {
     if(!is_dead_) {
         set_animation("death");
-        sound_.play();
+        sound_->play();
         sound_clock_.restart();
         is_dead_ = true;
     }
