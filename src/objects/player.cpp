@@ -36,9 +36,10 @@ void player::update() {
         projectile_manager_.update();
         // Shoot if left mouse button is clicked
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            if(!was_mouse_pressed_) {
+            if(!was_mouse_pressed_ && shoot_clock_.getElapsedTime().asSeconds() > 1.0f) {
                 projectile_manager_.append(getPosition(), getRotation());
                 was_mouse_pressed_ = true;
+                shoot_clock_.restart();
             }
         } else {
             was_mouse_pressed_ = false;

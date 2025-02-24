@@ -21,6 +21,7 @@ private:
 
     sf::RenderWindow& window_;
     sf::Clock rotation_clock_;
+    sf::Clock shoot_clock_;
     projectile_manager& projectile_manager_;
     bool was_mouse_pressed_ = false;
 
@@ -32,7 +33,7 @@ private:
 public:
     explicit player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager);
 
-    void update();
+    void update() override;
 
     void move();
 
