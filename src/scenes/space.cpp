@@ -132,10 +132,9 @@ bool space::update() {
 
     if (score_clock_.getElapsedTime().asSeconds() >= 1.0) {
         score_.increment();
+        score_.update_value();
         score_clock_.restart();
     }
-
-    score_.update_value();
 
     fps();
     draw();
