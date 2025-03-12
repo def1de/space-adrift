@@ -42,9 +42,6 @@ private:
             return std::hash<int>()(key.x) ^ (std::hash<int>()(key.y) << 1);
         }
     };
-
-    // Container for chunks
-
     sf::RenderWindow& window_;
 
     // Very technical stuff
@@ -53,8 +50,6 @@ private:
 
     // Background
     sf::Texture background_texture_;
-    sf::Sprite background_;
-    std::vector<sf::Sprite> backgrounds_;
     sf::Music background_music_;
 
     // Player
@@ -62,7 +57,6 @@ private:
     camera camera_;
 
     // Meteors
-    sf::Texture meteor_texture_;
     std::vector<meteor> meteors_;
 
     //Projectiles
@@ -83,8 +77,6 @@ private:
     float last_time_ = 0;
 
     bool is_paused_ = false;
-
-    std::vector<projectile> projectiles_;
 
 public:
     explicit space(sf::RenderWindow& pwindow);

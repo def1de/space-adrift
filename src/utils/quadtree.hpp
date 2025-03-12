@@ -20,10 +20,6 @@ class quad {
     // Contains details of a node (only one meteor at this level)
     const node* n_;
 
-    sf::Vector2f top_left_;
-    sf::Vector2f bot_right_;
-
-    std::vector<meteor*> objects_;  // Store objects (meteors)
     quad* top_left_tree_;
     quad* top_right_tree_;
     quad* bot_left_tree_;

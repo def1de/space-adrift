@@ -16,9 +16,6 @@ private:
 
     sf::RenderWindow& window_;
 
-    sf::RectangleShape shape_;
-    sf::Font font_;
-    sf::Text text_;
     std::function<void()> callback_;
 
     textures textures_;
