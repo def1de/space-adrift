@@ -2,10 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include "../objects/player.cpp"
-#include "../objects/fuel.cpp"
 #include "../objects/label.cpp"
-#include "../utils/quadtree.cpp"
-#include "../objects/meteor.cpp"
 
 class Space {
 
@@ -14,29 +11,17 @@ private:
     sf::Texture backgroundTexture;
     sf::Sprite background;
     sf::RenderTexture uiLayer;
-    sf::Texture meteorTexture;
-    sf::Texture fuelTexture;
     Player player;
 
     Label score;
-    Label stamina;
 
     sf::Clock scoreClock;
-    sf::Clock waveClock;
-    int wave = 0;
 
     Label fpsText;
 
     sf::Clock fpsClock;
     unsigned int frames = 0;
     float lastTime = 0;
-
-    std::vector<Fuel> fuels;
-    std::vector<Meteor> meteors;
-
-    bool isPaused = false;
-
-    Quadtree quadtree;
 
     sf::Music backgroundMusic;
 
@@ -45,9 +30,7 @@ public:
         window(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen),
         player(window),
         score(sf::Vector2f(10.f, 10.f), "Score: ", 0),
-        stamina(sf::Vector2f(10.f, 34.f), "Fuel: ", 0),
-        fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0),
-        quadtree(0, sf::FloatRect(0, 0, window.getSize().x, window.getSize().y))
+        fpsText(sf::Vector2f(10.f, 58.f), "FPS: ", 0)
     {
         window.setFramerateLimit(165);
 
@@ -63,18 +46,6 @@ public:
         background.setScale(scaleX, scaleY);
 
         uiLayer.create(window.getSize().x, window.getSize().y);
-
-        if (!meteorTexture.loadFromFile(ASSETS_DIR "/meteor.png")) {
-            std::cerr << "Failed to load meteor texture." << std::endl;
-        } else {
-            std::cout << "Meteor texture loaded successfully." << std::endl;
-        }
-
-        if (!fuelTexture.loadFromFile(ASSETS_DIR "/fuel.png")) {
-            std::cerr << "Failed to load fuel texture." << std::endl;
-        } else {
-            std::cout << "Fuel texture loaded successfully." << std::endl;
-        }
 
         if(!backgroundMusic.openFromFile(ASSETS_DIR "/soundtrack.ogg")) {
             std::cerr << "Failed to load background music." << std::endl;
@@ -100,12 +71,6 @@ public:
             }
         }
 
-        if(isPaused) {
-            return;
-        }
-
-        std::vector<int> fuelsToRemove;
-        std::vector<int> meteorsToRemove;
 
         player.updatePlayer();
 
@@ -114,46 +79,7 @@ public:
             scoreClock.restart();
         }
 
-        if(waveClock.getElapsedTime().asSeconds() >= 2.0) {
-            waveClock.restart();
-            wave++;
-            for(int i = 0; i < wave/2; i++) {
-                // meteors.emplace_back(meteorTexture); // no quadtree
-                // quadtree.insert(meteors.back());
-            }
-            // fuels.emplace_back(fuelTexture); // no quadtree
-        }
-
         score.update_value();
-        if(player.getFuel() <= 0) {
-            isPaused = true;
-        }
-        stamina.update_custom_value(std::to_string(player.getFuel()));
-
-        for (int i = fuels.size()-1; i>=0; --i) {
-            if (player.checkFuelCollision(fuels[i]) || isBelowBottomBoundary(fuels[i], window)) {
-                fuelsToRemove.push_back(i);
-            }
-            fuels[i].move();
-        }
-
-        for(int i : fuelsToRemove) {
-            fuels.erase(fuels.begin() + i);
-        }
-
-        // std::vector<sf::Sprite> nearbyMeteors;
-        // quadtree.retrieve(nearbyMeteors, player);
-        for (int i = meteors.size()-1; i>=0; --i) {
-            isPaused = player.checkMeteorCollision(meteors[i]);
-            if (isBelowBottomBoundary(meteors[i], window)) {
-                meteorsToRemove.push_back(i);
-            }
-            meteors[i].move();
-        }
-
-        for(int i : meteorsToRemove) {
-            meteors.erase(meteors.begin() + i);
-        }
 
         frames++;
         float currentTime = fpsClock.getElapsedTime().asSeconds();
@@ -174,15 +100,7 @@ public:
 
         window.draw(player);
 
-        for (const auto& meteor : meteors) {
-            window.draw(meteor);
-        }
-        for (const auto& fuel : fuels) {
-            window.draw(fuel);
-        }
-
         uiLayer.draw(score);
-        uiLayer.draw(stamina);
         uiLayer.draw(fpsText);
 
         uiLayer.display();
@@ -190,14 +108,5 @@ public:
         window.draw(uiSprite);
 
         window.display();
-    }
-
-
-
-    static bool isBelowBottomBoundary(const sf::Sprite& object, const sf::RenderWindow& window) {
-        float objectUpEdge = object.getPosition().y;
-        float viewportHeight = window.getSize().y;
-
-        return objectUpEdge > viewportHeight;
     }
 };
