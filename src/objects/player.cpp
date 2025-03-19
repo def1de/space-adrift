@@ -32,24 +32,12 @@ public:
 
     void updatePlayer() {
         move();
-
-        if(clock.getElapsedTime().asSeconds() >= 1.0) {
-            if(fuel > 0) {
-                // fuel--;
-            }
-            else {
-                window.close();
-            }
-            clock.restart();
-        }
-
-        if(isDash) checkDash();
     }
 
     void move() {
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-        sf::Vector2f worldPosition = window.mapPixelToCoords(mousePosition);
-        float playerRotation = getRotation() * M_PI / 180.0f - M_PI / 2.0f;
+        sf::Vector2i mousePosition = sf::Mouse::getPosition(window); // Get the mouse position in window coordinates
+        sf::Vector2f worldPosition = window.mapPixelToCoords(mousePosition); // Convert the mouse position to world coordinates
+        float playerRotation = getRotation() * M_PI / 180.0f - M_PI / 2.0f; // Convert the player rotation to radians
 
         // Calculate current movement direction
         sf::Vector2f movement(cos(playerRotation), sin(playerRotation));
@@ -72,8 +60,8 @@ public:
 
         // Apply a force to gradually change direction
         float turnRate = 0.1f; // Adjust this value to control the turning speed
-        movement.x = (1 - turnRate) * movement.x + turnRate * targetDirection.x;
-        movement.y = (1 - turnRate) * movement.y + turnRate * targetDirection.y;
+        movement.x = (1 - turnRate) * movement.x + turnRate * targetDirection.x; // Smoothly interpolate between the current and target x-directions
+        movement.y = (1 - turnRate) * movement.y + turnRate * targetDirection.y; // Smoothly interpolate between the current and target y-directions
 
         // Normalize the movement vector again
         length = sqrt(movement.x * movement.x + movement.y * movement.y);
@@ -92,7 +80,6 @@ public:
         // Smoothly rotate the sprite
         float deltaTime = clock.restart().asSeconds();
         rotatate(deltaTime, worldPosition);
-        // adjustPosition();
     }
 
     void rotatate(float deltaTime, sf::Vector2f worldPosition) {

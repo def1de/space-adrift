@@ -147,13 +147,13 @@ void update() {
 
     // std::vector<sf::Sprite> nearbyMeteors;
     // quadtree.retrieve(nearbyMeteors, player);
-    for (int i = meteors.size() - 1; i >= 0; --i) {
-        isPaused = player.checkMeteorCollision(meteors[i]);
-        if (isBelowBottomBoundary(meteors[i], window)) {
-            meteorsToRemove.push_back(i);
-        }
-        // meteors[i].move();
-    }
+    // for (int i = meteors.size() - 1; i >= 0; --i) {
+    //     isPaused = player.checkMeteorCollision(meteors[i]);
+    //     if (isBelowBottomBoundary(meteors[i], window)) {
+    //         meteorsToRemove.push_back(i);
+    //     }
+    //     // meteors[i].move();
+    // }
 
     for (int i : meteorsToRemove) {
         meteors.erase(meteors.begin() + i);
