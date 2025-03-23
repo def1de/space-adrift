@@ -16,8 +16,8 @@ private:
     sf::Texture texture;
 
 
-    bool wasMousePressed = false;
-    std::vector<Projectile> projectiles;
+    bool wasMousePressed = false; // Prevent continuous shooting
+    std::vector<Projectile> projectiles; // Store the projectiles
 
 public:
     explicit Player(sf::RenderWindow& pwindow) : window(pwindow) {
@@ -34,8 +34,9 @@ public:
     }
 
     std::vector<Projectile> updatePlayer() {
-        move();
+        move(); // Move the player
 
+        // go through all projectiles and update them
         for (auto& projectile : projectiles) {
             projectile.update();
         }
@@ -43,19 +44,14 @@ public:
         // Shoot if left mouse button is clicked
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             if(!wasMousePressed) {
+                // Create a new projectile
                 projectiles.emplace_back(getPosition(), getRotation(), ASSETS_DIR "/player_projectile.png", 4, 16, 0.1f);
                 wasMousePressed = true;
             }
         } else {
-            wasMousePressed = false;
+            wasMousePressed = false; // prevent continuous shooting
         }
 
-        if(fuelClock.getElapsedTime().asSeconds() >= 1.0) {
-            if(fuel > 0) {
-                // fuel--;
-            }
-            fuelClock.restart();
-        }
         return projectiles;
     }
 

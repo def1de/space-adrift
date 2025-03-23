@@ -177,13 +177,6 @@ public:
             }
         }
 
-        if (isPaused) {
-            return;
-        }
-
-        std::vector<int> fuelsToRemove;
-        std::vector<int> meteorsToRemove;
-
         projectiles = player.updatePlayer();
         camera.update(player.getPlayerPosition());
         updateChunks();
@@ -191,20 +184,7 @@ public:
         if (scoreClock.getElapsedTime().asSeconds() >= 1.0) {
             score.increment();
             scoreClock.restart();
-        }
-
-        score.update_value();
-        if (player.getFuel() <= 0) {
-            isPaused = true;
-        }
-        stamina.update_custom_value(std::to_string(player.getFuel()));
-
-        for (int i : fuelsToRemove) {
-            fuels.erase(fuels.begin() + i);
-        }
-
-        for (int i : meteorsToRemove) {
-            meteors.erase(meteors.begin() + i);
+            score.update_value();
         }
 
         frames++;
@@ -225,14 +205,9 @@ public:
 
         // Draw game objects
         window.draw(player);
-        for (const auto& meteor : meteors) {
-            window.draw(meteor);
-        }
-        for (const auto& fuel : fuels) {
-            window.draw(fuel);
-        }
-        for (const auto& projectile : projectiles) {
-            window.draw(projectile);
+
+        for (const auto& projectile : projectiles) { // iterate through all projectiles
+            window.draw(projectile); // draw the projectile
         }
 
         drawUI();
