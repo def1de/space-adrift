@@ -6,10 +6,11 @@
 #include "../objects/meteor.hpp"
 
 struct node {
-    sf::Vector2f pos;
+    sf::Vector2f pos; // Position of the meteor
     meteor* meteor_ptr;  // Store a pointer to the meteor object
-    float radius;
+    float radius; // Radius of the meteor
 
+    // Constructor for the node
     node(const sf::Vector2f pos, meteor* meteor, const float radius)
         : pos(pos), meteor_ptr(meteor), radius(radius) {}
 };
@@ -20,10 +21,7 @@ class quad {
     // Contains details of a node (only one meteor at this level)
     const node* n_;
 
-    sf::Vector2f top_left_;
-    sf::Vector2f bot_right_;
-
-    std::vector<meteor*> objects_;  // Store objects (meteors)
+    // Pointers to the four children quads
     quad* top_left_tree_;
     quad* top_right_tree_;
     quad* bot_left_tree_;

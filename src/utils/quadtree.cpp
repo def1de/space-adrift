@@ -23,15 +23,18 @@ void quad::insert(const node* node) // NOLINT(*-no-recursion)
 
     // Subdivide if necessary and pass the node to the appropriate child
     if (!top_left_tree_) {
+        // Subdivide the quad
         const float half_width = boundary_.width / 2.0f;
         const float half_height = boundary_.height / 2.0f;
 
+        // Create the four children
         top_left_tree_ = new quad(sf::FloatRect(boundary_.left, boundary_.top, half_width, half_height));
         top_right_tree_ = new quad(sf::FloatRect(boundary_.left + half_width, boundary_.top, half_width, half_height));
         bot_left_tree_ = new quad(sf::FloatRect(boundary_.left, boundary_.top + half_height, half_width, half_height));
         bot_right_tree_ = new quad(sf::FloatRect(boundary_.left + half_width, boundary_.top + half_height, half_width, half_height));
     }
 
+    // Insert the node into the appropriate child
     if (top_left_tree_->in_boundary(node->pos)) top_left_tree_->insert(node);
     else if (top_right_tree_->in_boundary(node->pos)) top_right_tree_->insert(node);
     else if (bot_left_tree_->in_boundary(node->pos)) bot_left_tree_->insert(node);
@@ -71,7 +74,6 @@ void quad::expand_boundary(const sf::Vector2f& pos) {
         if (pos.x > boundary_.left + boundary_.width) {
             boundary_.width += half_width;
         }
-
         // If pos is above the center, expand upwards
         if (pos.y < boundary_.top) {
             boundary_.top -= half_height;
@@ -81,7 +83,7 @@ void quad::expand_boundary(const sf::Vector2f& pos) {
             boundary_.height += half_height;
         }
 
-        // Double the size of the boundary in both directions
+        // Increase the size of the boundary in both directions
         boundary_.width += 5000.0f;
         boundary_.height += 5000.0f;
     }

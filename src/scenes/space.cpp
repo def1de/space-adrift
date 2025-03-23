@@ -71,7 +71,7 @@ void space::update_chunks() {
                 // iterate through the meteors in the chunk
                 auto&[position, meteors] = chunks_[coords];
                 for (auto& meteor : meteors) {
-                    meteor.update();
+                    meteor.update(); // Update the meteor
                 }
             }
         }
@@ -80,11 +80,12 @@ void space::update_chunks() {
 
 void space::update_quadtree() {
     quadtree_.clear();  // Clear the quadtree before each update
-    for (auto&[fst, snd] : chunks_) {
-        auto&[position, meteors] = snd;
-        for (auto& meteor : meteors) {
+    for (auto&[fst, snd] : chunks_) { // Iterate through all chunks
+        auto&[position, meteors] = snd; // Get the meteors in the chunk
+        for (auto& meteor : meteors) { // Iterate through all meteors in the chunk
+            // Create a new node with the meteor's position and radius
             const node* new_node = new node(meteor.getPosition(), &meteor, meteor.get_radius());
-            quadtree_.insert(new_node);  // Insert the meteor into the quadtree
+            quadtree_.insert(new_node); // Insert the meteor into the quadtree
         }
     }
 }
@@ -105,21 +106,22 @@ void space::update() {
 
     if (is_paused_) {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-            is_paused_ = false;
+            is_paused_ = false; // Unpause the game if the escape key is pressed
         }
+        // Don't update the game if it's paused
         return;
     }
 
     std::vector<meteor*> nearby_meteors;
     const sf::FloatRect player_range = player_.getGlobalBounds();  // Use player's bounding box
 
+    // Retrieve nearby meteors from the quadtree
     quadtree_.retrieve(nearby_meteors, player_range);
 
     // Check for collisions
-    for (const meteor* meteor : nearby_meteors) {
-        if (player_.check_collision(meteor->get_radius(), meteor->getPosition())) {
-            is_paused_ = true;
-            //Draw a dummy circle of the radius of the meteor that collided with the player
+    for (const meteor* meteor : nearby_meteors) { // Iterate through all nearby meteors
+        if (player_.check_collision(meteor->get_radius(), meteor->getPosition())) { // Check for collision
+            is_paused_ = true; // Pause the game
         }
     }
 
@@ -128,9 +130,11 @@ void space::update() {
 
     update_chunks();
 
+    // Update player position
     const sf::Vector2f player_position = player_.getPosition();
     const std::string player_pos = "(" + std::to_string(player_position.x) + ", " + std::to_string(player_position.y) + ")";
     position_.update_custom_value(player_pos);
+    // Update chunk position
     const std::string chunk_pos = "(" + std::to_string(player_position.x / CHUNK_SIZE) + ", " + std::to_string(player_position.y / CHUNK_SIZE) + ")";
     chunk_.update_custom_value(chunk_pos);
 
@@ -204,10 +208,12 @@ void space::draw_ui() {
 }
 
 void space::fps() {
-    frames_++;
+    frames_++; // Increment the frame counter
+    // Update the FPS text every second
     if (fps_clock_.getElapsedTime().asSeconds() - last_time_ >= 1.0f) {
-        fps_text_.setString("FPS: " + std::to_string(frames_));
-        frames_ = 0;
-        last_time_ += 1.0f;
+        fps_text_.setString("FPS: " + std::to_string(frames_)); // Update the FPS text
+        frames_ = 0; // Reset the frame counter
+        last_time_ += 1.0f; // Increment the last time tracker by 1 second
     }
 }
+

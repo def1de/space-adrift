@@ -83,10 +83,10 @@ void player::move() {
 
     // Smoothly rotate the sprite
     const float delta_time = rotation_clock_.restart().asSeconds();
-    rotatate(delta_time, world_position);
+    rotate(delta_time, world_position);
 }
 
-void player::rotatate(const float delta_time, const sf::Vector2f world_position) {
+void player::rotate(const float delta_time, const sf::Vector2f world_position) {
     const sf::Vector2f player_position = getPosition();
     const float angle_rad = atan2(world_position.y - player_position.y, world_position.x - player_position.x) + M_PI / 2;
     const float angle_deg = angle_rad * 180 / M_PI;
