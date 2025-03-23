@@ -2,32 +2,29 @@
 #ifndef MENU_HPP
 #define MENU_HPP
 
-#include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
-#include "../objects/button.hpp"
-#include "../utils/AnimatedSprite.hpp"
+#include <SFML/Graphics.hpp> // SFML graphics library
+#include <SFML/Audio.hpp> // SFML audio library
+#include "../objects/button.hpp" // button object
+#include "../utils/AnimatedSprite.hpp" // animated sprite object for the planet
 
 class menu {
 private:
-    sf::RenderWindow& window_;
+    sf::RenderWindow& window_; // pointer to the window
 
-    sf::Sprite background_;
-    sf::Texture background_texture_;
+    sf::Sprite background_; // background sprite
+    sf::Texture background_texture_; // background texture
 
-    animated_sprite planet_;
+    animated_sprite planet_; // animated planet sprite
 
-    sf::Sprite player_;
-    sf::Texture player_texture;
-    float player_angle_ = 0;
-    float radius_ = 0;
+    sf::Sprite player_; // player sprite
+    sf::Texture player_texture; // player texture
+    float player_angle_ = 0; // player angle
+    float radius_ = 0; // radius
 
-    sf::Sprite title_;
-    sf::Texture title_texture_;
+    button play_button_; // play button
+    button exit_button_; // exit button
 
-    button play_button_;
-    button exit_button_;
-
-    sf::Music background_music_;
+    sf::Music background_music_; // background music
 
 public:
     explicit menu(sf::RenderWindow& window);

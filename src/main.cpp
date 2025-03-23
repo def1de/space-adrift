@@ -3,9 +3,10 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "CMake SFML Project", sf::Style::Fullscreen);
-    window.setFramerateLimit(165);
+    // create the window
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Space Adrift", sf::Style::Fullscreen);
+    window.setFramerateLimit(165); // limit the frame rate to 165 fps
 
-    menu menu(window);
-    menu.run();
+    menu menu(window); // instantiate the menu object
+    menu.run(); // run the menu
 }

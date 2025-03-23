@@ -105,10 +105,7 @@ bool space::update() {
     }
 
     if (is_paused_) {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-            is_paused_ = false;
-        }
-        return true;
+        return false;
     }
 
     std::vector<meteor*> nearby_meteors;
@@ -120,7 +117,6 @@ bool space::update() {
     for (const meteor* meteor : nearby_meteors) {
         if (player_.check_collision(meteor->get_radius(), meteor->getPosition())) {
             is_paused_ = true;
-            //Draw a dummy circle of the radius of the meteor that collided with the player
         }
     }
 
