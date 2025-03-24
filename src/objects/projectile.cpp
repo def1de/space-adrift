@@ -12,25 +12,30 @@ projectile::projectile(const sf::Vector2f position, const float angle_deg, const
 }
 
 void projectile::update() {
+    // if the projectile lives for more than 2 seconds, it despawns
     if(despawn_timer_.getElapsedTime().asSeconds() > 2) {
         is_out_ = true;
     }
 
-    move(direction_);
-    animated_sprite::update();
+    move(direction_); // move the projectile
+    animated_sprite::update(); // update the animation
 }
 
+// getter for is_out_
 bool projectile::is_out() const {
     return is_out_;
 }
 
+// setter for is_out_
 void projectile::out() {
     is_out_ = true;
 }
 
 bool projectile::check_collision(const float radius, const sf::Vector2f position) const {
-    const sf::Vector2f projectile_position = getPosition();
-    const float distance = std::sqrt(std::pow(projectile_position.x - position.x, 2) + std::pow(projectile_position.y - position.y, 2));
-
+    const sf::Vector2f projectile_position = getPosition(); // get the position of the projectile
+    // calculate the distance between the projectile and the position using the Pythagorean theorem
+    const float distance = std::sqrt(std::pow(projectile_position.x - position.x, 2)
+        + std::pow(projectile_position.y - position.y, 2));
+    // if the distance is less than the radius, there is a collision
     return distance < radius;
 }

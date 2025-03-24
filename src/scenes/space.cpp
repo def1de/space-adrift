@@ -4,7 +4,7 @@
 space::space(sf::RenderWindow& pwindow) :
 window_(pwindow),
 quadtree_(sf::FloatRect(0, 0, 5000, 5000)),
-projectile_manager_(pwindow, quadtree_),
+projectile_manager_(pwindow, quadtree_), // Initialize the projectile manager
 player_(window_, projectile_manager_),
 camera_(window_),
 score_(sf::Vector2f(10.f, 10.f), "Score: ", 0),

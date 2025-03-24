@@ -10,14 +10,14 @@
 
 class player final: public sf::Sprite {
 private:
-    int speed_ = 5;
-    int radius_;
+    int speed_ = 5; // speed of the player
+    int radius_; // radius of the player
 
-    sf::RenderWindow& window_;
-    sf::Clock rotation_clock_;
-    sf::Texture texture_;
-    projectile_manager& projectile_manager_;
-    bool was_mouse_pressed_ = false;
+    sf::RenderWindow& window_; // reference to the window
+    sf::Clock rotation_clock_; // clock to measure the time between rotations
+    sf::Texture texture_; // texture of the player
+    projectile_manager& projectile_manager_; // reference to the projectile manager
+    bool was_mouse_pressed_ = false; // if the mouse was pressed
 
 public:
     explicit player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager);

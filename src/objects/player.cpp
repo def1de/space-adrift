@@ -134,6 +134,6 @@ float player::get_radius() const {
 }
 
 void player::draw() const {
-    window_.draw(*this);
-    projectile_manager_.draw();
+    window_.draw(*this); // Draw the player
+    projectile_manager_.draw(); // Draw the projectiles
 }

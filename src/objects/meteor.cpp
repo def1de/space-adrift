@@ -23,7 +23,7 @@ void meteor::update() {
 }
 
 void meteor::out() {
-    setScale(0.5f, 0.5f);
+    setScale(0.0f, 0.0f);
     is_out_ = true;
 }
 

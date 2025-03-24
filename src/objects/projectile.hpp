@@ -5,9 +5,11 @@
 
 class projectile final : public animated_sprite {
 private:
-    int speed_ = -10;
-    sf::Vector2f direction_;
+    int speed_ = -10; // speed of the projectile
+    sf::Vector2f direction_; // direction of the projectile
+    // timer to check if the projectile should be removed
     sf::Clock despawn_timer_;
+    // if the projectile should be removed
     bool is_out_ = false;
 
 

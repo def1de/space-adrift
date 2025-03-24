@@ -5,9 +5,9 @@
 
 class meteor final : public sf::Sprite {
 private:
-    float speed_;
-    float radius_;
-    bool is_out_ = false;
+    float speed_; // speed of the meteor
+    float radius_; // radius of the meteor
+    bool is_out_ = false; // if the meteor is out
 public:
     explicit meteor(const sf::Texture& texture);
 
