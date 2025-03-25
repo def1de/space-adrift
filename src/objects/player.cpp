@@ -2,46 +2,61 @@
 
 #include <cmath>
 
-player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager) : animated_sprite(PLAYER_IDLE_TEXTURE_PATH, 64, 64, 0.1f),
+// define M_PI if not defined
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+player::player(sf::RenderWindow& pwindow, projectile_manager& pprojectile_manager)
+: animated_sprite(PLAYER_IDLE_TEXTURE_PATH,64, 64, 0.1f),
 window_(pwindow),
 projectile_manager_(pprojectile_manager)
 {
+    // idle texture is not animated so we can load it here
     texture_.loadFromFile(PLAYER_IDLE_TEXTURE_PATH);
-    setScale(3.f, 3.f);
+    setScale(3.f, 3.f); // scale the player sprite
 
-    const auto texture_size = texture_.getSize();
-    const auto window_size = window_.getSize();
+    const auto texture_size = texture_.getSize(); // get the size of the texture
+    const auto window_size = window_.getSize(); // get the size of the window
 
+    // set the origin of the sprite to the center
     setOrigin(texture_size.x / 2.0f, texture_size.y / 2.0f);
 
+    // set the position of the sprite to the center of the window
     setPosition(window_size.x / 2.0f, window_size.y / 2.0f);
 
     const sf::FloatRect bounds = getLocalBounds();
-    radius_ = bounds.width / 2;
+    radius_ = bounds.width / 2; // set the radius of the player
 
+    //load the death sound
     if(!buffer_.loadFromFile(ASSETS_DIR "/player_death.ogg")) {
         throw std::runtime_error("Failed to load player death sound.");
     }
     sound_.setBuffer(buffer_);
     sound_duration_ = buffer_.getDuration().asMilliseconds();
 
-    add_animation("death", PLAYER_DEATH_TEXTURE_PATH, 64, 64, 0.1f, false);
+    // Add the death animation
+    add_animation("death", PLAYER_DEATH_TEXTURE_PATH,
+        64, 64, 0.1f, false);
 }
 
 void player::update() {
+    // Update the player if it is not dead
     if(!is_dead_) {
-        move();
-        projectile_manager_.update();
+        move(); // move the player
+        projectile_manager_.update(); // update the projectiles
         // Shoot if left mouse button is clicked
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             if(!was_mouse_pressed_) {
+                // Append a new projectile to the projectile manager
                 projectile_manager_.append(getPosition(), getRotation());
                 was_mouse_pressed_ = true;
             }
         } else {
-            was_mouse_pressed_ = false;
+            was_mouse_pressed_ = false; // reset the flag
         }
     }
+    // Update the player animation
     animated_sprite::update();
 }
 
@@ -148,10 +163,14 @@ void player::draw() const {
 }
 
 void player::die() {
+    // if the player is not dead already
     if(!is_dead_) {
+        // set the death animation
         set_animation("death");
+        // play the death sound
         sound_.play();
         sound_clock_.restart();
+        // set the flag
         is_dead_ = true;
     }
 }

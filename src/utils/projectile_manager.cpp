@@ -9,8 +9,10 @@ projectile_manager::projectile_manager(sf::RenderWindow& pwindow, quad& pquadtre
 }
 
 void projectile_manager::append(sf::Vector2f position, float angle_deg) {
-    projectiles_.emplace_back(position, angle_deg, TEXTURE_PATH, FRAME_WIDTH, FRAME_HEIGHT, FRAME_DURATION);
-    sound_.play();
+    // create a new projectile
+    projectiles_.emplace_back(position, angle_deg,
+        TEXTURE_PATH, FRAME_WIDTH, FRAME_HEIGHT, FRAME_DURATION);
+    sound_.play(); // play the shoot sound
 }
 
 void projectile_manager::update() {

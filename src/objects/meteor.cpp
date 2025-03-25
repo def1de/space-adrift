@@ -3,15 +3,18 @@
 #include <iostream>
 
 meteor::meteor(): animated_sprite(ASSETS_DIR "/meteor.png", 96, 96, 0.1f) {
-    setScale(3.f, 3.f);
-    speed_ = random(1, 3);
+    setScale(3.f, 3.f); // scale the meteor
+    speed_ = random(1, 3); // set the speed of the meteor
 
-    const sf::FloatRect bounds = getLocalBounds();
-    radius_ = bounds.width / 2;
-    setOrigin(bounds.width / 2, bounds.height / 2);
+    const sf::FloatRect bounds = getLocalBounds(); // get the local bounds of the meteor
+    radius_ = bounds.width / 2; // set the radius of the meteor
+    setOrigin(bounds.width / 2, bounds.height / 2); // set the origin of the meteor
 
-    add_animation("explode", ASSETS_DIR "/meteor_explode.png", 96, 96, 0.1f, false);
+    // Add the explosion animation
+    add_animation("explode", ASSETS_DIR "/meteor_explode.png",
+        96, 96, 0.1f, false);
 
+    // Load the meteor explosion sound
     if(!buffer_.loadFromFile(ASSETS_DIR "/meteor_explosion.ogg")) {
         throw std::runtime_error("Failed to load meteor explosion sound.");
     }
@@ -23,6 +26,7 @@ float meteor::get_radius() const {
 }
 
 void meteor::update() {
+    // If the meteor is out of the game, just update the animation
     if(!is_out_) {
         set_animation("idle");
         setRotation(getRotation()+.05f*speed_);
