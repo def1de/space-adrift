@@ -1,25 +1,26 @@
-#include "menu.hpp"
-#include "space.hpp"
-#include "../utils/texture_manager.hpp"
-#include <cmath>
-#include <iostream>
+#include "menu.hpp" // Include the menu header file
+#include "space.hpp" // Include the space header file for the space scene
+#include "../utils/texture_manager.hpp" // Include the texture manager header file for loading textures
+#include <cmath> // Include the cmath library for mathematical functions
+#include <iostream> // Include the iostream library for input/output
 
 menu::menu(sf::RenderWindow& window) :
+// Initialize the attributes
 window_(window),
 planet_(ASSETS_DIR "/menu_planet.png", 250, 250, 0.1f),
 play_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f - 50.0f}, ASSETS_DIR "/buttons/play_idle.png", ASSETS_DIR "/buttons/play_hover.png", ASSETS_DIR "/buttons/play_active.png"),
 exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 50.0f}, ASSETS_DIR "/buttons/quit_idle.png", ASSETS_DIR "/buttons/quit_hover.png", ASSETS_DIR "/buttons/quit_active.png")
 {
     // Load background
-    // background_texture_.loadFromFile(ASSETS_DIR "/menu_background.png");
     background_.setTexture(*texture_manager::get_texture(ASSETS_DIR "/menu_background.png"));
 
     // Load background music
     if (!background_music_.openFromFile(ASSETS_DIR "/menu.ogg")) {
+        // If the background music fails to load, print an error message
         std::cerr << "Failed to load background music." << std::endl;
     } else {
-        background_music_.setLoop(true);
-        background_music_.play();
+        background_music_.setLoop(true); // Loop the background music
+        background_music_.play(); // Play the background music
     }
 
     // Load animated planet
@@ -28,7 +29,6 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
     planet_.setPosition(150.0f, window.getSize().y / 2.0f);
 
     // Load player
-    // player_texture.loadFromFile(ASSETS_DIR "/player.png");
     player_.setTexture(*texture_manager::get_texture(ASSETS_DIR "/player.png"));
     player_.setOrigin(player_.getLocalBounds().width / 2.0f, player_.getLocalBounds().height / 2.0f);
     player_.setScale(5.0f, 5.0f);
@@ -45,36 +45,39 @@ exit_button_(window, 3, {window.getSize().x*0.75f, window.getSize().y / 2.0f + 5
     title_.setScale(2.0f, 2.0f);
     title_.setPosition(window.getSize().x*0.75f, window.getSize().y / 4.0f);
 
+    // Set play button callback
     play_button_.set_callback([&window, this]() {
-        space space(window);
-        background_music_.stop();
-        space.run();
-        background_music_.play();
+        space space(window); // instantiate the space scene
+        background_music_.stop(); // stop the background music
+        space.run(); // run the space scene
+        background_music_.play(); // resume the background music when the space scene is closed
     });
 
+    // Set exit button callback
     exit_button_.set_callback([&window]() {
-        window.close();
+        window.close(); // close the window
     });
 }
 
 void menu::run() {
+    // Run the menu while the window is open
     while (window_.isOpen()) {
-        sf::Event event;
-        while (window_.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
-                window_.close();
+        sf::Event event; // Create an event object
+        while (window_.pollEvent(event)) { // Poll for events
+            if (event.type == sf::Event::Closed) { // If the close event is triggered
+                window_.close(); // Close the window
             }
-            play_button_.handle_event(event);
-            exit_button_.handle_event(event);
+            play_button_.handle_event(event); // Handle events for the play button
+            exit_button_.handle_event(event); // Handle events for the exit button
         }
 
-        update();
-        draw();
+        update(); // Update the menu
+        draw(); // Draw the menu
     }
 }
 
 void menu::update() {
-    // Update animated background
+    // Update animated planet
     planet_.update();
 
     // Update player
@@ -95,7 +98,6 @@ void menu::draw() const {
     window_.draw(planet_);
     window_.draw(player_);
     // Draw UI elements
-    // window_.draw(title_);
     play_button_.draw();
     exit_button_.draw();
     window_.display();

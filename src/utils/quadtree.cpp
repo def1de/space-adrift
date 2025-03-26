@@ -1,12 +1,13 @@
-#include "quadtree.hpp"
+#include "quadtree.hpp" // Include the quadtree header file
 
 quad::quad(const sf::FloatRect boundary)
+// Initialize the quad with the boundary and set all pointers to nullptr
         :boundary_(boundary), n_(nullptr),
         top_left_tree_(nullptr), top_right_tree_(nullptr),
         bot_left_tree_(nullptr), bot_right_tree_(nullptr) {}
 
 quad::~quad() {
-    clear();
+    clear(); // Clear the quadtree when the object is destroyed
 }
 
 void quad::insert(const node* node) // NOLINT(*-no-recursion)
@@ -31,7 +32,7 @@ void quad::insert(const node* node) // NOLINT(*-no-recursion)
         bot_left_tree_ = new quad(sf::FloatRect(boundary_.left, boundary_.top + half_height, half_width, half_height));
         bot_right_tree_ = new quad(sf::FloatRect(boundary_.left + half_width, boundary_.top + half_height, half_width, half_height));
     }
-
+    // Insert the node into the appropriate child
     if (top_left_tree_->in_boundary(node->pos)) top_left_tree_->insert(node);
     else if (top_right_tree_->in_boundary(node->pos)) top_right_tree_->insert(node);
     else if (bot_left_tree_->in_boundary(node->pos)) bot_left_tree_->insert(node);
